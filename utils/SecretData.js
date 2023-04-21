@@ -7,18 +7,6 @@ dotenv.config();
 
 export default class SecretData {
     constructor() {};
-    // conexionPG () {
-    //     return {
-    //         user: "postgres",
-    //         host: "localhost",
-    //         database: "kartax",
-    //         password: "!nfra48x",
-    //         password: "123456",
-    //         port: 5432,
-    //         connectionTimeoutMillis: 5000,
-    //         idleTimeoutMillis: 3000,
-    //     };
-    // };
     conexionPG () {
         return {
             user: process.env.DB_USER,
