@@ -85,8 +85,27 @@ misRutas.get("/mesa/:id", async (req, res) => {
 });
 
 // agrega items a la comanda activa
-misRutas.post("/comanda-deta", (req, res) => {
-    console.log(req.body);
+misRutas.post("/comanda-deta", async (req, res) => {
+    const { items, idComanda } = req.body;
+
+    if (items && idComanda) {
+        await pgSql.setItem_IntoComanda(items, idComanda);
+        res.status(201).json("Datos Ingresados Correctamente!!");
+    } else {
+        res.status(400).json("Formato json incorrecto!!");
+    };
+});
+
+// obtien los items de la comanda activa de la mesa
+misRutas.get("/comanda-deta/idMesa/:id", async (req, res) => {
+    const id = isNaN(req.params.id) ? 0: req.params.id;
+
+    if (id) {
+        const resultado = await pgSql.getItemComanda_ByIdMesa(1);
+        res.json(resultado);
+    } else {
+        res.status(400).json("Formato json incorrecto!!");
+    }
 });
 
 // privado --------------------------------------------------------------

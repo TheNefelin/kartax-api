@@ -111,17 +111,40 @@ export default class PGSQL {
             [id_item]
         );
     };
-    async setItem_IntoComanda(id_item, id_comanda) {
+    async setItem_IntoComanda(arrItem, id_comanda) {
         const resultado = await myQuery("SELECT id FROM comanda WHERE is_active = TRUE AND id = $1;", [id_comanda]);
         if (resultado.length > 0) {
-            await myQuery(
-                `INSERT INTO comanda_deta 
-                    (fecha, id_item, id_comanda)
-                VALUES
-                    (NOW(), $1, $2)`,
-                [id_item, id_comanda]
-            );
+            arrItem.forEach(async e => {
+                const id_item = e.idItem;
+
+                await myQuery(
+                    `INSERT INTO comanda_deta 
+                        (fecha, id_item, id_comanda)
+                    VALUES
+                        (NOW(), $1, $2)`,
+                    [id_item, id_comanda]
+                );
+            });
         };
+    };
+    async getItemComanda_ByIdMesa(id_mesa) {
+        return await myQuery(
+            `SELECT 
+                b.id_comanda,
+                b.id_item,
+                c.nombre,
+                c.precio,
+                c.is_active
+            FROM comanda a 
+                INNER JOIN comanda_deta b ON b.id_comanda = a.id
+                INNER JOIN item c ON c.id = b.id_item
+            WHERE
+                a.id_mesa = $1
+                AND a.is_active = TRUE
+            ORDER BY
+                c.nombre;`,
+            [id_mesa]
+        );
     };
 };
 
@@ -189,5 +212,5 @@ export async function pgSqlValidarComandaYMesa(idMesa) {
         pool.end();
     };
 
-    return resultado;
+    return [resultado];
 };
