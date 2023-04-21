@@ -4,7 +4,7 @@
 * https://github.com/TheNefelin/kartax-api.git
 * https://github.com/TheNefelin/kartax-express.git
 
-> las app estan corriendo en los siguiente links
+> Las app estan corriendo en los siguiente links
 * https://kartax-api-production.up.railway.app
 * https://kartax-express-production.up.railway.app
 
