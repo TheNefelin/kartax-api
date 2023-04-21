@@ -2,7 +2,7 @@ import pkg from "pg";
 import SecretData from "./SecretData.js";
 
 const { Pool, Client } = pkg;
-const secretData = new SecretData();
+const secretData = new SecretData(); // la conexion secreta a la bd
 
 export default class PGSQL {
     constructor() {
@@ -96,15 +96,42 @@ export default class PGSQL {
             [id_item_categ]
         );
     };
+    async getItem_ByIdItem(id_item) {
+        return await myQuery(
+            `SELECT 
+                id,
+                nombre,
+                descripcion,
+                precio,
+                img
+            FROM item
+            WHERE 
+                is_active = TRUE
+                AND id = $1;`,
+            [id_item]
+        );
+    };
+    async setItem_IntoComanda(id_item, id_comanda) {
+        const resultado = await myQuery("SELECT id FROM comanda WHERE is_active = TRUE AND id = $1;", [id_comanda]);
+        if (resultado.length > 0) {
+            await myQuery(
+                `INSERT INTO comanda_deta 
+                    (fecha, id_item, id_comanda)
+                VALUES
+                    (NOW(), $1, $2)`,
+                [id_item, id_comanda]
+            );
+        };
+    };
 };
 
+// funcion que ejecuta todas las querys de la clase
 async function myQuery(sql, values) {
     const client = new Client(secretData.conexionPG());
     let resultado;
 
     try {
         await client.connect();
-        console.log("+ pg Abrir");
         const res = await client.query(sql, values);
         resultado = res.rows;
     } catch (err) {
@@ -113,34 +140,53 @@ async function myQuery(sql, values) {
     } finally {
         await client.release;
         await client.end();
-        console.log("- pg cerrar");
     };
 
     return resultado;
 };
 
-async function transaccionSetUsuario(idNegocio, values) {
-    const pool = new Pool(conexion);
-    let resultado;
+// transaccion que valida la disponibilidad de la mesa y crea comanda si es que no existe
+export async function pgSqlValidarComandaYMesa(idMesa) {
+    const pool = new Pool(secretData.conexionPG());
+
+    const resultado = {
+        estado: false,
+        msge: "",
+        idComanda: 0,
+    };
 
     try {
-        await pool.connect()
+        await pool.connect();
         await pool.query("BEGIN");
 
-        const res1 = await pool.query("INSERT INTO usuario (nombres, apellidos, correo, usuario, clave, is_active, id_rol) VALUES ($1, $2, $3, $4, crypt($5, gen_salt('bf')), $6, $7) RETURNING id", values);
-        console.table(res1.rows)
-        const res2 = await pool.query("INSERT INTO usuario_negocio (id_usuario, id_negocio, fecha) VALUES ($1, $2, NOW()) RETURNING *", [res1.rows[0].id, idNegocio]);
-        console.table(res2.rows)
+        const res1 = await pool.query("SELECT b.id FROM mesa a INNER JOIN comanda b ON a.id = b.id_mesa WHERE b.is_active = TRUE AND b.id_mesa = $1;", [idMesa]);
+        const res2 = await pool.query("SELECT COUNT(id) AS cont FROM mesa WHERE is_active = TRUE AND id = $1;", [idMesa]);
+
+        if (res1.rows.length > 0) {
+            resultado.estado = true;
+            resultado.msge = "Comanda Abierta";
+            resultado.idComanda = res1.rows[0].id;
+        } else {
+            if (res2.rows[0].cont > 0) {
+                const res3 = await pool.query("INSERT INTO comanda (fecha, is_active, id_mesa) VALUES (NOW(), TRUE, $1) RETURNING id;", [idMesa]);
+                
+                resultado.estado = true;
+                resultado.msge = "Mesa Disponible";
+                resultado.idComanda = res3.rows[0].id;
+            } else {
+                resultado.estado = false;
+                resultado.msge = "Mesa Cerrada";
+            };
+        };
 
         await pool.query("COMMIT");
-        resultado = res2.rows
     } catch (err) {
         await pool.query("ROLLBACK");
-        console.log(err);
-        resultado = [];
+        resultado.estado = false;
+        resultado.msge = err;
     } finally {
         await pool.release;
-        pool.end;
+        pool.end();
     };
 
     return resultado;

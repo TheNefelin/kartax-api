@@ -1,6 +1,6 @@
 import { Router } from "express";
 import SecretData from "../utils/SecretData.js";
-import PGSQL from "../utils/PGSQL.js";
+import PGSQL, { pgSqlValidarComandaYMesa } from "../utils/PGSQL.js";
 
 const secretData = new SecretData();
 const pgSql = new PGSQL();
@@ -14,52 +14,79 @@ misRutas.get("/", async (req, res) => {
 
 // publico --------------------------------------------------------------
 // ----------------------------------------------------------------------
+// obtiene los datos del negocio
 misRutas.get("/negocio/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.getNegocio_ById(id);
     res.json(resultado);
 });
 
+// obtiene los datos del negocio por mesa
 misRutas.get("/negocio/idMesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.getNegocio_ByIdMesa(id);
     res.json(resultado);
 });
 
+// obtiene lista de tipo alimentos
 misRutas.get("/tipo-alimento/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.getTipoAlim_ByIdNegocio(id);
     res.json(resultado);
 });
 
+// obtiene toda la lista de categoria item
 misRutas.get("/item-categ", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.getItemCateg_All();
     res.json(resultado);
 });
 
-misRutas.get("/item-categ/:id", async (req, res) => {
+// obtiene lista de categoria item por id tipo alimentos
+misRutas.get("/item-categ/IdTipoAlimento/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.getItemCateg_ByIdAlim(id);
     res.json(resultado);
 });
 
+// obtiene lista de items por id
 misRutas.get("/item/:id", async (req, res) => {
+    const id = isNaN(req.params.id) ? 0: req.params.id;
+    const resultado = await pgSql.getItem_ByIdItem(id);
+    res.json(resultado);
+});
+
+// obtiene lista de items por id categoria de items
+misRutas.get("/item/IdCateg/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.getItem_ByIdItemCateg(id);
     res.json(resultado);
 });
 
+// valida el inicio de sesion generando un token
 misRutas.get("/iniciar-sesion/:usuario&:clave", async (req, res) => {
     const { usuario, clave } = req.params;
     const resultado = await pgSql.iniciar_sesion(usuario, clave);
 
     if (resultado[0].cant > 0) {
-        const token = secretData.newToken(usuario, clave, 60);
+        const token = secretData.newToken(usuario, clave, 1);
         res.json([{estado: true, token: token}]);
     } else {
         res.json([{estado: false, token: ""}]);
     };
+});
+
+// valida si la mesa esta activa y crea la comanda en caso de que no exista
+misRutas.get("/mesa/:id", async (req, res) => {
+    const id = isNaN(req.params.id) ? 0: req.params.id;
+    const resultado = await pgSqlValidarComandaYMesa(id);
+    console.log(resultado)
+    res.json(resultado);
+});
+
+// agrega items a la comanda activa
+misRutas.post("/comanda-deta", (req, res) => {
+    console.log(req.body);
 });
 
 // privado --------------------------------------------------------------
@@ -74,7 +101,7 @@ misRutas.get("/token/:token", async (req, res) => {
 // ----------------------------------------------------------------------
 function validarToken(token) {
     const resultado = secretData.validateToken(token);
-
+    return resultado
     if (resultado.estado) {
         return true;
     } else {

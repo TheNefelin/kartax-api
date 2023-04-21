@@ -9,4 +9,7 @@ npm install body-parser
 npm install jsonwebtoken
 npm install express-fileupload
 npm install cors
+npm install dotenv
 ```
+
+> Para las conexiones a la BD se debe configurar 
