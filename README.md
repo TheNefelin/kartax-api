@@ -6,7 +6,7 @@
 
 > las app estan corriendo en los siguiente links
 * https://kartax-api-production.up.railway.app
-* kartax-express-production.up.railway.app
+* https://kartax-express-production.up.railway.app
 
 > Dependencias
 ```
