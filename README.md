@@ -51,7 +51,7 @@ JWT_KEY="jwt_key"
 * Algoritmo de cálculo y manipulación de archivos de texto
 ```
 6. Utilización general del lenguaje, sintaxis, selección de tipos de datos, sentencias lógicas, expresiones, operaciones, comparaciones.
-    - () -- SIN REVISAR AUN -----------------------------------
+    - (Kartax Express) /utils/funciones.js
 7. Utilización de sentencias repetitivas.
     - () -- SIN REVISAR AUN -----------------------------------
 8. Convenciones y estilos de programación.
@@ -71,11 +71,11 @@ JWT_KEY="jwt_key"
 * Lenguaje Node
 ```
 13. Inclusión de paquetes y librerías de usuario.
-    - () -- SIN REVISAR AUN -----------------------------------
+    - (Kartax Express y Kartax Api) /package.json "linea 2"
 14. Agrupación del código y separación por funcionalidad.
     - () -- SIN REVISAR AUN -----------------------------------
 15. Utilización de funciones asíncronas.
-    - () -- SIN REVISAR AUN -----------------------------------
+    - (Kartax Express) /utils/funciones.js y ApiPostgreSQL.js, (Kartax Api) /utils/PGSQL.js, etc...
 16. Lectura de parámetros de entrada.
     - () -- SIN REVISAR AUN -----------------------------------
 17. Funcionamiento general del aplicativo
@@ -88,5 +88,5 @@ JWT_KEY="jwt_key"
 19. Manejo y ejecución de consultas desde Node
     - (Kartax Api) /utils/PGSQL.js
 20. Uso de Express
-    - (Kartax Express y Kartax Api) index.js y server.js
+    - (Kartax Express y Kartax Api) /index.js y /server.js
 ```
