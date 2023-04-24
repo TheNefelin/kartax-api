@@ -1,6 +1,6 @@
 import { Router } from "express";
 import SecretData from "../utils/SecretData.js";
-import PGSQL, { pgSqlValidarComandaYMesa } from "../utils/PGSQL.js";
+import PGSQL from "../utils/PGSQL.js";
 
 const secretData = new SecretData();
 const pgSql = new PGSQL();
@@ -12,7 +12,7 @@ misRutas.get("/", async (req, res) => {
     res.json(["Kartax's API"]);
 });
 
-// publico --------------------------------------------------------------
+// publico //------------------------------------------------------------
 // ----------------------------------------------------------------------
 // obtiene los datos del negocio
 misRutas.get("/negocio/:id", async (req, res) => {
@@ -79,9 +79,22 @@ misRutas.get("/iniciar-sesion/:usuario&:clave", async (req, res) => {
 // valida si la mesa esta activa y crea la comanda en caso de que no exista
 misRutas.get("/mesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
-    const resultado = await pgSqlValidarComandaYMesa(id);
+    const resultado = await pgSql.transaccion_ValidarComandaYMesa(id);
     console.log(resultado)
     res.json(resultado);
+});
+
+// comanda activa -------------------------------------------------------
+// obtien los items de la comanda activa de la mesa
+misRutas.get("/comanda-deta/idMesa/:id", async (req, res) => {
+    const id = isNaN(req.params.id) ? 0: req.params.id;
+
+    if (id) {
+        const resultado = await pgSql.getItemComanda_ByIdMesa(id);
+        res.json(resultado);
+    } else {
+        res.status(400).json("Formato json incorrecto!!");
+    }
 });
 
 // agrega items a la comanda activa
@@ -96,13 +109,13 @@ misRutas.post("/comanda-deta", async (req, res) => {
     };
 });
 
-// obtien los items de la comanda activa de la mesa
-misRutas.get("/comanda-deta/idMesa/:id", async (req, res) => {
-    const id = isNaN(req.params.id) ? 0: req.params.id;
+// pagar items de la comanda activa
+misRutas.put("/comanda-deta", async (req, res) => {
+    const { arrItem } = req.body;
 
-    if (id) {
-        const resultado = await pgSql.getItemComanda_ByIdMesa(1);
-        res.json(resultado);
+    if (arrItem) {
+        await pgSql.updateItem_OfComanda(arrItem);
+        res.status(201).json("Datos Ingresados Correctamente!!");
     } else {
         res.status(400).json("Formato json incorrecto!!");
     }

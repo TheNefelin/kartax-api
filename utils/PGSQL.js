@@ -111,6 +111,27 @@ export default class PGSQL {
             [id_item]
         );
     };
+    // comanda activa -------------------------------------------------------
+    async getItemComanda_ByIdMesa(id_mesa) {
+        return await myQuery(
+            `SELECT 
+                b.id_comanda,
+                b.id,
+                b.id_item,
+                c.nombre,
+                c.precio,
+                c.is_active
+            FROM comanda a 
+                INNER JOIN comanda_deta b ON b.id_comanda = a.id
+                INNER JOIN item c ON c.id = b.id_item
+            WHERE
+                a.id_mesa = $1
+                AND a.is_active = TRUE
+            ORDER BY
+                c.nombre;`,
+            [id_mesa]
+        );
+    };
     async setItem_IntoComanda(arrItem, id_comanda) {
         const resultado = await myQuery("SELECT id FROM comanda WHERE is_active = TRUE AND id = $1;", [id_comanda]);
         if (resultado.length > 0) {
@@ -127,24 +148,12 @@ export default class PGSQL {
             });
         };
     };
-    async getItemComanda_ByIdMesa(id_mesa) {
-        return await myQuery(
-            `SELECT 
-                b.id_comanda,
-                b.id_item,
-                c.nombre,
-                c.precio,
-                c.is_active
-            FROM comanda a 
-                INNER JOIN comanda_deta b ON b.id_comanda = a.id
-                INNER JOIN item c ON c.id = b.id_item
-            WHERE
-                a.id_mesa = $1
-                AND a.is_active = TRUE
-            ORDER BY
-                c.nombre;`,
-            [id_mesa]
-        );
+    async updateItem_OfComanda(arrObj) {
+        return transaccion_PagarPedidos(arrObj);
+    }
+    // ----------------------------------------------------------------------
+    async transaccion_ValidarComandaYMesa(id_mesa) {
+        return validarComandaYMesa(id_mesa);
     };
 };
 
@@ -169,7 +178,7 @@ async function myQuery(sql, values) {
 };
 
 // transaccion que valida la disponibilidad de la mesa y crea comanda si es que no existe
-export async function pgSqlValidarComandaYMesa(idMesa) {
+async function validarComandaYMesa(id_mesa) {
     const pool = new Pool(secretData.conexionPG());
 
     const resultado = {
@@ -182,8 +191,8 @@ export async function pgSqlValidarComandaYMesa(idMesa) {
         await pool.connect();
         await pool.query("BEGIN");
 
-        const res1 = await pool.query("SELECT b.id FROM mesa a INNER JOIN comanda b ON a.id = b.id_mesa WHERE b.is_active = TRUE AND b.id_mesa = $1;", [idMesa]);
-        const res2 = await pool.query("SELECT COUNT(id) AS cont FROM mesa WHERE is_active = TRUE AND id = $1;", [idMesa]);
+        const res1 = await pool.query("SELECT b.id FROM mesa a INNER JOIN comanda b ON a.id = b.id_mesa WHERE b.is_active = TRUE AND b.id_mesa = $1;", [id_mesa]);
+        const res2 = await pool.query("SELECT COUNT(id) AS cont FROM mesa WHERE is_active = TRUE AND id = $1;", [id_mesa]);
 
         if (res1.rows.length > 0) {
             resultado.estado = true;
@@ -191,7 +200,7 @@ export async function pgSqlValidarComandaYMesa(idMesa) {
             resultado.idComanda = res1.rows[0].id;
         } else {
             if (res2.rows[0].cont > 0) {
-                const res3 = await pool.query("INSERT INTO comanda (fecha, is_active, id_mesa) VALUES (NOW(), TRUE, $1) RETURNING id;", [idMesa]);
+                const res3 = await pool.query("INSERT INTO comanda (fecha, is_active, id_mesa) VALUES (NOW(), TRUE, $1) RETURNING id;", [id_mesa]);
                 
                 resultado.estado = true;
                 resultado.msge = "Mesa Disponible";
@@ -213,4 +222,33 @@ export async function pgSqlValidarComandaYMesa(idMesa) {
     };
 
     return [resultado];
+};
+
+// transaccion pagar pedido
+async function transaccion_PagarPedidos(arrObj) {
+    const pool = new Pool(secretData.conexionPG());
+
+    const resultado = {
+        estado: false,
+        msge: "",
+        idComanda: 0,
+    };
+
+    try { 
+        await pool.connect();
+        await pool.query("BEGIN");
+
+        arrObj.forEach(e => {
+            console.log(e)
+        });
+
+        await pool.query("COMMIT");
+    } catch (err) {
+        await pool.query("ROLLBACK");
+        resultado.estado = false;
+        resultado.msge = err;
+    } finally {
+        await pool.release;
+        pool.end();
+    };
 };
