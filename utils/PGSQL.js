@@ -5,9 +5,7 @@ const { Pool, Client } = pkg;
 const secretData = new SecretData(); // la conexion secreta a la bd
 
 export default class PGSQL {
-    constructor() {
-
-    }
+    constructor() {}
     async iniciar_sesion(usuario, clave) {
         return await myQuery(
             `SELECT 
@@ -231,16 +229,21 @@ async function transaccion_PagarPedidos(arrObj) {
     const resultado = {
         estado: false,
         msge: "",
-        idComanda: 0,
+        id: [],
     };
 
     try { 
         await pool.connect();
         await pool.query("BEGIN");
 
-        arrObj.forEach(e => {
+        arrObj.forEach( async (e) => {
+            await pool.query("DELETE FROM comanda_deta WHERE id = $1", [e.id]);
+            resultado.id.push(e);
             console.log(e)
         });
+     
+        resultado.estado = true;
+        resultado.msge = "Items Modificados Correctamente";
 
         await pool.query("COMMIT");
     } catch (err) {
@@ -251,4 +254,6 @@ async function transaccion_PagarPedidos(arrObj) {
         await pool.release;
         pool.end();
     };
+
+    return [resultado];
 };

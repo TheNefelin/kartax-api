@@ -381,6 +381,8 @@ SELECT * FROM color;
 SELECT * FROM tipo_alimento;
 SELECT * FROM item_categ;
 SELECT * FROM item;
+SELECT * FROM rrss;
+SELECT * FROM mesa;
 
 -- ---------------------------------------------------------------------
 SELECT

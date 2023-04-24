@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// referencia el archivo .env para acceder a los datos secretos
 dotenv.config();
 
 export default class SecretData {

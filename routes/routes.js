@@ -76,6 +76,7 @@ misRutas.get("/iniciar-sesion/:usuario&:clave", async (req, res) => {
     };
 });
 
+// comanda activa -------------------------------------------------------
 // valida si la mesa esta activa y crea la comanda en caso de que no exista
 misRutas.get("/mesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
@@ -84,7 +85,6 @@ misRutas.get("/mesa/:id", async (req, res) => {
     res.json(resultado);
 });
 
-// comanda activa -------------------------------------------------------
 // obtien los items de la comanda activa de la mesa
 misRutas.get("/comanda-deta/idMesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
@@ -114,8 +114,8 @@ misRutas.put("/comanda-deta", async (req, res) => {
     const { arrItem } = req.body;
 
     if (arrItem) {
-        await pgSql.updateItem_OfComanda(arrItem);
-        res.status(201).json("Datos Ingresados Correctamente!!");
+        const resultado = await pgSql.updateItem_OfComanda(arrItem);
+        res.status(201).json(resultado);
     } else {
         res.status(400).json("Formato json incorrecto!!");
     }
