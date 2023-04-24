@@ -15,10 +15,10 @@ export default class SecretData {
             database: process.env.DB_DATABASE,
             password: process.env.DB_PASWORD,
             port: process.env.DB_PORT,
-            connectionTimeoutMillis: 5000,
-            idleTimeoutMillis: 3000,
-            evict: 3000,
-            max: 10,
+            // connectionTimeoutMillis: 5000,
+            // idleTimeoutMillis: 3000,
+            // evict: 3000,
+            // max: 10,
         };
     };
     newToken(usuario, clave, timeOutMin) {

@@ -80,7 +80,7 @@ misRutas.get("/iniciar-sesion/:usuario&:clave", async (req, res) => {
 // valida si la mesa esta activa y crea la comanda en caso de que no exista
 misRutas.get("/mesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
-    const resultado = await pgSql.transaccion_ValidarComandaYMesa(id);
+    const resultado = await pgSql.validarComandaYMesa(id);
     console.log(resultado)
     res.json(resultado);
 });

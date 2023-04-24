@@ -130,28 +130,15 @@ export default class PGSQL {
             [id_mesa]
         );
     };
-    async setItem_IntoComanda(arrItem, id_comanda) {
-        const resultado = await myQuery("SELECT id FROM comanda WHERE is_active = TRUE AND id = $1;", [id_comanda]);
-        if (resultado.length > 0) {
-            arrItem.forEach(async e => {
-                const id_item = e.idItem;
-
-                await myQuery(
-                    `INSERT INTO comanda_deta 
-                        (fecha, id_item, id_comanda)
-                    VALUES
-                        (NOW(), $1, $2)`,
-                    [id_item, id_comanda]
-                );
-            });
-        };
+    async setItem_IntoComanda(arrObj, id_comanda) {
+        return transaccion_AgregarPedidosAComanda(arrObj, id_comanda)
     };
     async updateItem_OfComanda(arrObj) {
         return transaccion_PagarPedidos(arrObj);
     }
     // ----------------------------------------------------------------------
-    async transaccion_ValidarComandaYMesa(id_mesa) {
-        return validarComandaYMesa(id_mesa);
+    async validarComandaYMesa(id_mesa) {
+        return transaccion_ValidarComandaYMesa(id_mesa);
     };
 };
 
@@ -176,7 +163,7 @@ async function myQuery(sql, values) {
 };
 
 // transaccion que valida la disponibilidad de la mesa y crea comanda si es que no existe
-async function validarComandaYMesa(id_mesa) {
+async function transaccion_ValidarComandaYMesa(id_mesa) {
     const pool = new Pool(secretData.conexionPG());
 
     const resultado = {
@@ -209,8 +196,10 @@ async function validarComandaYMesa(id_mesa) {
             };
         };
 
+        console.log("Transaccion Exitosa!!!");
         await pool.query("COMMIT");
     } catch (err) {
+        console.log("Transaccion Cancelada!!!");
         await pool.query("ROLLBACK");
         resultado.estado = false;
         resultado.msge = err;
@@ -220,6 +209,51 @@ async function validarComandaYMesa(id_mesa) {
     };
 
     return [resultado];
+};
+
+// transaccion agregar pedidos
+async function transaccion_AgregarPedidosAComanda(arrObj, id_comanda) {
+    const pool = new Pool(secretData.conexionPG());
+
+    const resultado = {
+        estado: false,
+        msge: "",
+        id: [],
+    };
+
+    try {
+        await pool.connect();
+        await pool.query("BEGIN");
+
+        // valida si la comanda esta activa
+        const res = await pool.query("SELECT id FROM comanda WHERE is_active = TRUE AND id = $1;", [id_comanda]);
+
+        // ingresa pedidos si esta activa
+        if (res.rows.length > 0) {
+            await arrObj.reduce(async (acc, e) => {
+                await acc;
+                const id = await pool.query(`INSERT INTO comanda_deta (fecha, id_item, id_comanda) VALUES (NOW(), $1, $2) RETURNING id`, [e.idItem, id_comanda]);
+                resultado.id.push(id.rows[0].id)
+            }, Promise.resolve());
+    
+            resultado.estado = true;
+            resultado.msge = "Items Ingresados Correctamente";
+        } else {
+            resultado.estado = false;
+            resultado.msge = "La Comanda no Existe!!!";
+        };
+
+        console.log("Transaccion Exitosa!!!");
+        await pool.query("COMMIT");
+    } catch (err) {
+        console.log("Transaccion Cancelada!!!");
+        await pool.query("ROLLBACK");
+        resultado.estado = false;
+        resultado.msge = `Uno de los Productos ya fue Pagado, error: ${err}`;
+    } finally {
+        await pool.release;
+        pool.end();
+    };
 };
 
 // transaccion pagar pedido
@@ -236,20 +270,33 @@ async function transaccion_PagarPedidos(arrObj) {
         await pool.connect();
         await pool.query("BEGIN");
 
-        arrObj.forEach( async (e) => {
-            await pool.query("DELETE FROM comanda_deta WHERE id = $1", [e.id]);
-            resultado.id.push(e);
-            console.log(e)
-        });
+        await arrObj.reduce(async (acc, e) => {
+            await acc;
+            const id = await pool.query("DELETE FROM public.comanda_deta WHERE id = $1 RETURNING id", [parseInt(e.id)]);
+            resultado.id.push(id.rows[0].id)
+        }, Promise.resolve());
+
+        // await Promise.all(arrObj.map(async (e) => {
+        //     const res = await pool.query("DELETE FROM public.comanda_deta WHERE id = $1 RETURNING id", [parseInt(e.id)]);
+        //     resultado.id.push(res.rows[0].id);
+        //     console.table(res.rows);
+        // }));
+
+        // arrObj.forEach( async (e) => {
+        //     await pool.query("DELETE FROM comanda_deta WHERE id = $1", [e.id]);
+        //     resultado.id.push(e);
+        //     console.log(e)
+        // });
      
         resultado.estado = true;
         resultado.msge = "Items Modificados Correctamente";
-
+        console.log("Transaccion Exitosa!!!");
         await pool.query("COMMIT");
     } catch (err) {
+        console.log("Transaccion Cancelada!!!");
         await pool.query("ROLLBACK");
         resultado.estado = false;
-        resultado.msge = err;
+        resultado.msge = `Uno de los Productos ya fue Pagado, error: ${err}`;
     } finally {
         await pool.release;
         pool.end();
