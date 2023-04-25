@@ -10,12 +10,12 @@
 
 > Dependencias
 ```
-npm install express
-npm install pg
-npm install jsonwebtoken
-npm install express-fileupload
 npm install cors
 npm install dotenv
+npm install express
+npm install express-fileupload
+npm install jsonwebtoken
+npm install pg
 ```
 
 > Para construir la Base de Datos se debe ejecutar el archivo PostgreSQL_query.sql en PostreSQL
