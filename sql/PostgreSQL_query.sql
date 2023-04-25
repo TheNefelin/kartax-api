@@ -383,6 +383,25 @@ SELECT * FROM item_categ;
 SELECT * FROM item;
 SELECT * FROM rrss;
 SELECT * FROM mesa;
+------
+
+-- ---------------------------------------------------------------------
+-- DROP TABLE public.caja CASCADE; 
+-- DROP TABLE public.color CASCADE; 
+-- DROP TABLE public.comanda CASCADE; 
+-- DROP TABLE public.comanda_deta CASCADE; 
+-- DROP TABLE public.item CASCADE; 
+-- DROP TABLE public.item_categ CASCADE; 
+-- DROP TABLE public.mesa CASCADE; 
+-- DROP TABLE public.negocio CASCADE; 
+-- DROP TABLE public.rol CASCADE; 
+-- DROP TABLE public.rrss CASCADE;
+-- DROP TABLE public.rrss_negocio CASCADE;
+-- DROP TABLE public.salida CASCADE; 
+-- DROP TABLE public.salida_deta CASCADE; 
+-- DROP TABLE public.tipo_alimento CASCADE; 
+-- DROP TABLE public.usuario CASCADE; 
+-- DROP TABLE public.usuario_negocio CASCADE; 
 
 -- ---------------------------------------------------------------------
 SELECT
@@ -444,24 +463,6 @@ FROM item
 WHERE 
     is_active = TRUE
     AND id_item_categ = 1;
-
--- ---------------------------------------------------------------------
--- DROP TABLE public.caja CASCADE; 
--- DROP TABLE public.color CASCADE; 
--- DROP TABLE public.comanda CASCADE; 
--- DROP TABLE public.comanda_deta CASCADE; 
--- DROP TABLE public.item CASCADE; 
--- DROP TABLE public.item_categ CASCADE; 
--- DROP TABLE public.mesa CASCADE; 
--- DROP TABLE public.negocio CASCADE; 
--- DROP TABLE public.rol CASCADE; 
--- DROP TABLE public.rrss CASCADE;
--- DROP TABLE public.rrss_negocio CASCADE;
--- DROP TABLE public.salida CASCADE; 
--- DROP TABLE public.salida_deta CASCADE; 
--- DROP TABLE public.tipo_alimento CASCADE; 
--- DROP TABLE public.usuario CASCADE; 
--- DROP TABLE public.usuario_negocio CASCADE; 
 
 -- ---------------------------------------------------------------------
 -- ---------------------------------------------------------------------
