@@ -126,6 +126,7 @@ misRutas.put("/comanda-deta", async (req, res) => {
 misRutas.get("/token/:token", async (req, res) => {
     const { token } = req.params;
     const resultado = secretData.validateToken(token);
+    console.log(resultado);
     res.json(resultado);
 });
 

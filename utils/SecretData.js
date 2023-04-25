@@ -32,13 +32,17 @@ export default class SecretData {
         );
     };
     validateToken(token) {
+        let obj;
+
         jwt.verify(token, process.env.JWT_KEY, (err, data) => {
             if (err) {
-                return [{estado: false, msge: "Token Inválido"}];
+                obj = [{estado: false, msge: "Token Inválido"}];
             } else {
-                return [{estado: true, msge: "Token Válido"}];
+                obj = [{estado: true, msge: "Token Válido"}];
             };
         });
+
+        return obj;
     };
     ruta() {
         let ruta = path.dirname(fileURLToPath(import.meta.url));
