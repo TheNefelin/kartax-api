@@ -100,7 +100,7 @@ export default class PGSQL {
 // funcion que ejecuta todas las querys de la clase
 async function myQuery(sql, values) {
     const client = new Client(secretData.conexionPG());
-    let resultado;
+    let resultado = [];
 
     try {
         await client.connect();
@@ -108,7 +108,6 @@ async function myQuery(sql, values) {
         resultado = res.rows;
     } catch (err) {
         console.log(err);
-        resultado = [];
     } finally {
         await client.release;
         await client.end();

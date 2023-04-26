@@ -1,10 +1,12 @@
 import { Router } from "express";
+import * as fn from "../utils/funciones.js"
 import SecretData from "../utils/SecretData.js";
 import PGSQL from "../utils/PGSQL.js";
 
 const secretData = new SecretData();
 const pgSql = new PGSQL();
 const misRutas = Router();
+const api_version = "/api/v1"
 
 export default misRutas;
 
@@ -87,42 +89,20 @@ misRutas.put("/comanda-deta", async (req, res) => {
 
 // privado -------------------------------------------------------------- //
 // ---------------------------------------------------------------------- //
-misRutas.get("/token/:token", async (req, res) => {
-    const { token } = req.params;
-    const resultado = secretData.validateToken(token);
-    console.log(resultado);
-    res.json(resultado);
-});
+// misRutas.get("/token/:token", async (req, res) => {
+//     const { token } = req.params;
+//     const resultado = secretData.validateToken(token);
+//     console.log(resultado);
+//     res.json(resultado);
+// });
 
-// valida el inicio de sesion generando un token
-misRutas.get("/iniciar-sesion/:usuario&:clave", async (req, res) => {
-    const { usuario, clave } = req.params;
-    const resultado = await pgSql.iniciar_sesion(usuario, clave);
-
-    if (resultado[0].cant > 0) {
-        const token = secretData.newToken(usuario, clave, 1);
-        res.json([{estado: true, token: token}]);
-    } else {
-        res.json([{estado: false, token: ""}]);
-    };
+misRutas.post("/iniciar-sesion", async (req, res) => {
+    const resultado = await fn.iniciar_sesion(req.body);
+    res.status(resultado.cod).json(resultado.data);
 });
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
-misRutas.get("/testing", (req, res) => {
-    console.log(req.body);
-    res.json(req.body);
-});
-
-misRutas.get("/upload", async (req, res) => {
-    res.send(`
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="img" required>
-        <button>Upload</button>
-    </form>`
-    );
-});
-
 misRutas.post("/upload", (req, res) => {
     if (!req.files || Object.keys(req.files).length === 0) {
         return res.status(400).send("No ha Enviado Archivo")
