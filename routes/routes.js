@@ -9,92 +9,56 @@ const misRutas = Router();
 export default misRutas;
 
 misRutas.get("/", async (req, res) => {
-    res.json(["Kartax's API"]);
+    res.json(["Kartax's API Running"]);
 });
 
-// publico //------------------------------------------------------------
-// ----------------------------------------------------------------------
-// obtiene los datos del negocio
-misRutas.get("/negocio/:id", async (req, res) => {
-    const id = isNaN(req.params.id) ? 0: req.params.id;
-    const resultado = await pgSql.getNegocio_ById(id);
-    res.json(resultado);
-});
+// publico //------------------------------------------------------------ //
+// ---------------------------------------------------------------------- //
 
-// obtiene los datos del negocio por mesa
+// datos del front Tipo Alimento, Categoria Item, Items -----------------
+
+// obtiene los datos del negocio por idMesa
 misRutas.get("/negocio/idMesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.getNegocio_ByIdMesa(id);
-    res.json(resultado);
+    res.status(resultado.length > 0 ? 201 : 400).json(resultado);
 });
 
-// obtiene lista de tipo alimentos
-misRutas.get("/tipo-alimento/:id", async (req, res) => {
-    const id = isNaN(req.params.id) ? 0: req.params.id;
+// obtiene lista de tipo alimentos por IdNegocio
+misRutas.get("/tipo-alimento/:idNegocio", async (req, res) => {
+    const id = isNaN(req.params.idNegocio) ? 0: req.params.idNegocio;
     const resultado = await pgSql.getTipoAlim_ByIdNegocio(id);
-    res.json(resultado);
+    res.status(resultado.length > 0 ? 201 : 400).json(resultado);
 });
 
-// obtiene toda la lista de categoria item
-misRutas.get("/item-categ", async (req, res) => {
-    const id = isNaN(req.params.id) ? 0: req.params.id;
-    const resultado = await pgSql.getItemCateg_All();
-    res.json(resultado);
-});
-
-// obtiene lista de categoria item por id tipo alimentos
-misRutas.get("/item-categ/IdTipoAlimento/:id", async (req, res) => {
-    const id = isNaN(req.params.id) ? 0: req.params.id;
-    const resultado = await pgSql.getItemCateg_ByIdAlim(id);
-    res.json(resultado);
-});
-
-// obtiene lista de items por id
-misRutas.get("/item/:id", async (req, res) => {
-    const id = isNaN(req.params.id) ? 0: req.params.id;
-    const resultado = await pgSql.getItem_ByIdItem(id);
-    res.json(resultado);
+// obtien todas la categorias de item y los items por idTipoAlimento
+misRutas.get("/item-categ-e-items/:idTipoAlim", async (req, res) => {
+    const id = isNaN(req.params.idTipoAlim) ? 0: req.params.idTipoAlim;
+    const resultado = await pgSql.getItemCategAndItem_ByIdAlim(id);
+    res.status(resultado.length > 0 ? 201 : 400).json(resultado);
 });
 
 // obtiene lista de items por id categoria de items
-misRutas.get("/item/IdCateg/:id", async (req, res) => {
+misRutas.get("/item/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
-    const resultado = await pgSql.getItem_ByIdItemCateg(id);
-    res.json(resultado);
-});
-
-// valida el inicio de sesion generando un token
-misRutas.get("/iniciar-sesion/:usuario&:clave", async (req, res) => {
-    const { usuario, clave } = req.params;
-    const resultado = await pgSql.iniciar_sesion(usuario, clave);
-
-    if (resultado[0].cant > 0) {
-        const token = secretData.newToken(usuario, clave, 1);
-        res.json([{estado: true, token: token}]);
-    } else {
-        res.json([{estado: false, token: ""}]);
-    };
+    const resultado = await pgSql.getItem_ById(id);
+    res.status(resultado.length > 0 ? 201 : 400).json(resultado);
 });
 
 // comanda activa -------------------------------------------------------
+
 // valida si la mesa esta activa y crea la comanda en caso de que no exista
 misRutas.get("/mesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
     const resultado = await pgSql.validarComandaYMesa(id);
-    console.log(resultado)
-    res.json(resultado);
+    res.status(resultado.length > 0 ? 201 : 400).json(resultado);
 });
 
 // obtien los items de la comanda activa de la mesa
 misRutas.get("/comanda-deta/idMesa/:id", async (req, res) => {
     const id = isNaN(req.params.id) ? 0: req.params.id;
-
-    if (id) {
-        const resultado = await pgSql.getItemComanda_ByIdMesa(id);
-        res.json(resultado);
-    } else {
-        res.status(400).json("Formato json incorrecto!!");
-    }
+    const resultado = await pgSql.getItemComanda_ByIdMesa(id);
+    res.status(201).json(resultado);
 });
 
 // agrega items a la comanda activa
@@ -102,8 +66,8 @@ misRutas.post("/comanda-deta", async (req, res) => {
     const { items, idComanda } = req.body;
 
     if (items && idComanda) {
-        await pgSql.setItem_IntoComanda(items, idComanda);
-        res.status(201).json("Datos Ingresados Correctamente!!");
+        const resultado = await pgSql.setItem_IntoComanda(items, idComanda);
+        res.status(201).json(resultado);
     } else {
         res.status(400).json("Formato json incorrecto!!");
     };
@@ -121,13 +85,26 @@ misRutas.put("/comanda-deta", async (req, res) => {
     }
 });
 
-// privado --------------------------------------------------------------
-// ----------------------------------------------------------------------
+// privado -------------------------------------------------------------- //
+// ---------------------------------------------------------------------- //
 misRutas.get("/token/:token", async (req, res) => {
     const { token } = req.params;
     const resultado = secretData.validateToken(token);
     console.log(resultado);
     res.json(resultado);
+});
+
+// valida el inicio de sesion generando un token
+misRutas.get("/iniciar-sesion/:usuario&:clave", async (req, res) => {
+    const { usuario, clave } = req.params;
+    const resultado = await pgSql.iniciar_sesion(usuario, clave);
+
+    if (resultado[0].cant > 0) {
+        const token = secretData.newToken(usuario, clave, 1);
+        res.json([{estado: true, token: token}]);
+    } else {
+        res.json([{estado: false, token: ""}]);
+    };
 });
 
 // ----------------------------------------------------------------------

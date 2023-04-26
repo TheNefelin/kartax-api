@@ -6,6 +6,7 @@ const secretData = new SecretData(); // la conexion secreta a la bd
 
 export default class PGSQL {
     constructor() {}
+    // ----------------------------------------------------------------------
     async iniciar_sesion(usuario, clave) {
         return await myQuery(
             `SELECT 
@@ -17,19 +18,7 @@ export default class PGSQL {
             [usuario, clave]
         );
     };
-    async getNegocio_ById(id_negocio) {
-        return await myQuery(
-            `SELECT 
-                id, 
-                nombre, 
-                logo
-            FROM negocio
-            WHERE 
-                is_active = TRUE 
-                AND id = $1;`,
-            [id_negocio]
-        );
-    };
+    // publico --------------------------------------------------------------
     async getNegocio_ByIdMesa(id_mesa) {
         return await myQuery(
             `SELECT 
@@ -59,49 +48,15 @@ export default class PGSQL {
             [id_negocio]
         );
     };
-    async getItemCateg_All() {
-        return await myQuery(
-            `SELECT 
-                id, 
-                nombre
-            FROM item_categ;`,
-            []
-        );
-    }
-    async getItemCateg_ByIdAlim(id_tipo_alimento) {
-        return await myQuery(
-            `SELECT 
-                id,
-                nombre
-            FROM item_categ
-            WHERE 
-                id_tipo_alimento = $1;`,
-            [id_tipo_alimento]
-        );
+    async getItemCategAndItem_ByIdAlim(id_tipo_alimento) {
+        return await get_ItemCateg_Items(id_tipo_alimento);
     };
-    async getItem_ByIdItemCateg(id_item_categ) {
+    async getItem_ById(id_item) {
         return await myQuery(
             `SELECT 
                 id,
                 nombre,
-                descripcion,
-                precio,
-                img
-            FROM item
-            WHERE 
-                is_active = TRUE
-                AND id_item_categ = $1;`,
-            [id_item_categ]
-        );
-    };
-    async getItem_ByIdItem(id_item) {
-        return await myQuery(
-            `SELECT 
-                id,
-                nombre,
-                descripcion,
-                precio,
-                img
+                precio
             FROM item
             WHERE 
                 is_active = TRUE
@@ -166,11 +121,7 @@ async function myQuery(sql, values) {
 async function transaccion_ValidarComandaYMesa(id_mesa) {
     const pool = new Pool(secretData.conexionPG());
 
-    const resultado = {
-        estado: false,
-        msge: "",
-        idComanda: 0,
-    };
+    const resultado = [];
 
     try {
         await pool.connect();
@@ -180,46 +131,34 @@ async function transaccion_ValidarComandaYMesa(id_mesa) {
         const res2 = await pool.query("SELECT COUNT(id) AS cont FROM mesa WHERE is_active = TRUE AND id = $1;", [id_mesa]);
 
         if (res1.rows.length > 0) {
-            resultado.estado = true;
-            resultado.msge = "Comanda Abierta";
-            resultado.idComanda = res1.rows[0].id;
+            resultado.push({id_comanda: res1.rows[0].id});
         } else {
             if (res2.rows[0].cont > 0) {
                 const res3 = await pool.query("INSERT INTO comanda (fecha, is_active, id_mesa) VALUES (NOW(), TRUE, $1) RETURNING id;", [id_mesa]);
                 
-                resultado.estado = true;
-                resultado.msge = "Mesa Disponible";
-                resultado.idComanda = res3.rows[0].id;
-            } else {
-                resultado.estado = false;
-                resultado.msge = "Mesa Cerrada";
+                resultado.push({id_comanda: res3.rows[0].id});
             };
         };
 
         console.log("Transaccion Exitosa!!!");
         await pool.query("COMMIT");
     } catch (err) {
-        console.log("Transaccion Cancelada!!!");
         await pool.query("ROLLBACK");
-        resultado.estado = false;
-        resultado.msge = err;
+        console.log("Transaccion Cancelada!!!");
+        console.log(err);
     } finally {
         await pool.release;
         pool.end();
     };
 
-    return [resultado];
+    return resultado;
 };
 
 // transaccion agregar pedidos
 async function transaccion_AgregarPedidosAComanda(arrObj, id_comanda) {
     const pool = new Pool(secretData.conexionPG());
 
-    const resultado = {
-        estado: false,
-        msge: "",
-        id: [],
-    };
+    const resultado = [];
 
     try {
         await pool.connect();
@@ -233,38 +172,29 @@ async function transaccion_AgregarPedidosAComanda(arrObj, id_comanda) {
             await arrObj.reduce(async (acc, e) => {
                 await acc;
                 const id = await pool.query(`INSERT INTO comanda_deta (fecha, id_item, id_comanda) VALUES (NOW(), $1, $2) RETURNING id`, [e.idItem, id_comanda]);
-                resultado.id.push(id.rows[0].id)
+                resultado.push({id_pedido: id.rows[0].id})
             }, Promise.resolve());
-    
-            resultado.estado = true;
-            resultado.msge = "Items Ingresados Correctamente";
-        } else {
-            resultado.estado = false;
-            resultado.msge = "La Comanda no Existe!!!";
         };
 
         console.log("Transaccion Exitosa!!!");
         await pool.query("COMMIT");
     } catch (err) {
-        console.log("Transaccion Cancelada!!!");
         await pool.query("ROLLBACK");
-        resultado.estado = false;
-        resultado.msge = `Uno de los Productos ya fue Pagado, error: ${err}`;
+        console.log("Transaccion Cancelada!!!");
+        console.log(err);
     } finally {
         await pool.release;
         pool.end();
     };
+
+    return resultado;
 };
 
 // transaccion pagar pedido
 async function transaccion_PagarPedidos(arrObj) {
     const pool = new Pool(secretData.conexionPG());
 
-    const resultado = {
-        estado: false,
-        msge: "",
-        id: [],
-    };
+    const resultado = [];
 
     try { 
         await pool.connect();
@@ -273,7 +203,7 @@ async function transaccion_PagarPedidos(arrObj) {
         await arrObj.reduce(async (acc, e) => {
             await acc;
             const id = await pool.query("DELETE FROM public.comanda_deta WHERE id = $1 RETURNING id", [parseInt(e.id)]);
-            resultado.id.push(id.rows[0].id)
+            resultado.push({pedido_eliminado: id.rows[0].id})
         }, Promise.resolve());
 
         // await Promise.all(arrObj.map(async (e) => {
@@ -282,25 +212,52 @@ async function transaccion_PagarPedidos(arrObj) {
         //     console.table(res.rows);
         // }));
 
-        // arrObj.forEach( async (e) => {
-        //     await pool.query("DELETE FROM comanda_deta WHERE id = $1", [e.id]);
-        //     resultado.id.push(e);
-        //     console.log(e)
-        // });
-     
-        resultado.estado = true;
-        resultado.msge = "Items Modificados Correctamente";
         console.log("Transaccion Exitosa!!!");
         await pool.query("COMMIT");
     } catch (err) {
-        console.log("Transaccion Cancelada!!!");
         await pool.query("ROLLBACK");
-        resultado.estado = false;
-        resultado.msge = `Uno de los Productos ya fue Pagado, error: ${err}`;
+        console.log("Transaccion Cancelada!!!");
+        console.log(err);
     } finally {
         await pool.release;
         pool.end();
     };
 
-    return [resultado];
+    return resultado;
 };
+
+// Funcion que carga la categorias de item con sus items para el front
+async function get_ItemCateg_Items(id_tipo_alimento) {
+    const pool = new Pool(secretData.conexionPG());
+
+    const resultado = [];
+
+    try {
+        await pool.connect();
+        await pool.query("BEGIN");
+
+        // obtiene todas las categorias por tipo alimento
+        const itemCateg = await pool.query("SELECT id, nombre FROM item_categ WHERE id_tipo_alimento = $1;", [id_tipo_alimento]);
+
+        // obtiene todos los items por categoria
+        await itemCateg.rows.reduce(async (acc, e) => {
+            await acc;
+
+            const items = await pool.query("SELECT id, nombre, descripcion, precio, img FROM item WHERE is_active = TRUE AND id_item_categ = $1", [e.id]);
+            e.items = items.rows;
+            resultado.push(e);
+        }, Promise.resolve());
+
+        console.log("Transaccion Exitosa!!!");
+        await pool.query("COMMIT");
+    } catch (err) {
+        console.log("Transaccion Cancelada!!!");
+        await pool.query("ROLLBACK");
+        console.log(err);
+    } finally {
+        await pool.release;
+        pool.end();
+    };
+
+    return resultado;
+}
