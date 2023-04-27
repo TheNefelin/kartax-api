@@ -89,6 +89,22 @@ CREATE TABLE IF NOT EXISTS public.rol
     CONSTRAINT rol_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS public.rrss
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    nombre character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    img character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT rrss_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.rrss_negocio
+(
+    id_rrss integer NOT NULL,
+    id_negocio integer NOT NULL,
+    link character(255) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT rrss_negocio_pkey PRIMARY KEY (id_rrss, id_negocio)
+);
+
 CREATE TABLE IF NOT EXISTS public.salida
 (
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
@@ -137,22 +153,6 @@ CREATE TABLE IF NOT EXISTS public.usuario_negocio
     id_negocio integer NOT NULL,
     fecha timestamp without time zone NOT NULL,
     CONSTRAINT usuario_negocio_pkey PRIMARY KEY (id_usuario, id_negocio)
-);
-
-CREATE TABLE IF NOT EXISTS public.rrss
-(
-    id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
-    nombre character varying(50) NOT NULL,
-    img character varying(255) NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.rrss_negocio
-(
-    id_rrss integer NOT NULL,
-    id_negocio integer NOT NULL,
-    link character(255) NOT NULL,
-    PRIMARY KEY (id_rrss, id_negocio)
 );
 
 ALTER TABLE IF EXISTS public.caja
@@ -211,6 +211,22 @@ ALTER TABLE IF EXISTS public.mesa
     NOT VALID;
 
 
+ALTER TABLE IF EXISTS public.rrss_negocio
+    ADD CONSTRAINT rrss_negocio_id_negocio_fkey FOREIGN KEY (id_negocio)
+    REFERENCES public.negocio (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.rrss_negocio
+    ADD CONSTRAINT rrss_negocio_id_rrss_fkey FOREIGN KEY (id_rrss)
+    REFERENCES public.rrss (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
 ALTER TABLE IF EXISTS public.salida
     ADD CONSTRAINT salida_id_caja_fkey FOREIGN KEY (id_caja)
     REFERENCES public.caja (id) MATCH SIMPLE
@@ -254,22 +270,6 @@ ALTER TABLE IF EXISTS public.usuario_negocio
 ALTER TABLE IF EXISTS public.usuario_negocio
     ADD CONSTRAINT usuario_negocio_id_usuario_fkey FOREIGN KEY (id_usuario)
     REFERENCES public.usuario (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.rrss_negocio
-    ADD FOREIGN KEY (id_rrss)
-    REFERENCES public.rrss (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.rrss_negocio
-    ADD FOREIGN KEY (id_negocio)
-    REFERENCES public.negocio (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
@@ -383,25 +383,31 @@ SELECT * FROM item_categ;
 SELECT * FROM item;
 SELECT * FROM rrss;
 SELECT * FROM mesa;
+SELECT * FROM comanda;
+SELECT * FROM comanda_deta;
 ------
+SELECT * FROM caja;
+SELECT * FROM rrss_negocio;
+SELECT * FROM salida;
+SELECT * FROM salida_deta;
 
 -- ---------------------------------------------------------------------
--- DROP TABLE public.caja CASCADE; 
+-- DROP TABLE public.rol CASCADE; 
+-- DROP TABLE public.usuario CASCADE; 
+-- DROP TABLE public.negocio CASCADE; 
+-- DROP TABLE public.usuario_negocio CASCADE; 
 -- DROP TABLE public.color CASCADE; 
+-- DROP TABLE public.tipo_alimento CASCADE; 
+-- DROP TABLE public.item_categ CASCADE; 
+-- DROP TABLE public.item CASCADE; 
+-- DROP TABLE public.rrss CASCADE;
+-- DROP TABLE public.mesa CASCADE; 
 -- DROP TABLE public.comanda CASCADE; 
 -- DROP TABLE public.comanda_deta CASCADE; 
--- DROP TABLE public.item CASCADE; 
--- DROP TABLE public.item_categ CASCADE; 
--- DROP TABLE public.mesa CASCADE; 
--- DROP TABLE public.negocio CASCADE; 
--- DROP TABLE public.rol CASCADE; 
--- DROP TABLE public.rrss CASCADE;
+-- DROP TABLE public.caja CASCADE; 
 -- DROP TABLE public.rrss_negocio CASCADE;
 -- DROP TABLE public.salida CASCADE; 
 -- DROP TABLE public.salida_deta CASCADE; 
--- DROP TABLE public.tipo_alimento CASCADE; 
--- DROP TABLE public.usuario CASCADE; 
--- DROP TABLE public.usuario_negocio CASCADE; 
 
 -- ---------------------------------------------------------------------
 SELECT

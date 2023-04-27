@@ -1,10 +1,12 @@
 import { Router } from "express";
 import * as fn from "../utils/funciones.js"
+
 import SecretData from "../utils/SecretData.js";
 import PGSQL from "../utils/PGSQL.js";
 
 const secretData = new SecretData();
 const pgSql = new PGSQL();
+
 const misRutas = Router();
 const api_version = "/api/v1"
 
@@ -89,12 +91,11 @@ misRutas.put("/comanda-deta", async (req, res) => {
 
 // privado -------------------------------------------------------------- //
 // ---------------------------------------------------------------------- //
-// misRutas.get("/token/:token", async (req, res) => {
-//     const { token } = req.params;
-//     const resultado = secretData.validateToken(token);
-//     console.log(resultado);
-//     res.json(resultado);
-// });
+misRutas.get("/token/:token", async (req, res) => {
+    const { token } = req.params;
+    const resultado = secretData.validateToken(token);
+    res.json(resultado);
+});
 
 misRutas.post("/iniciar-sesion", async (req, res) => {
     const resultado = await fn.iniciar_sesion(req.body);
