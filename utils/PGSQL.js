@@ -250,8 +250,8 @@ async function get_ItemCateg_Items(id_tipo_alimento) {
         console.log("Transaccion Exitosa!!!");
         await pool.query("COMMIT");
     } catch (err) {
-        console.log("Transaccion Cancelada!!!");
         await pool.query("ROLLBACK");
+        console.log("Transaccion Cancelada!!!");
         console.log(err);
     } finally {
         await pool.release;
