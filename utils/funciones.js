@@ -29,18 +29,3 @@ export async function iniciar_sesion(obj) {
     return {cod: 201, data: [{token}]}
 };
 
-// -- todas las funciones data_ obtienen los datos de la BD atravez del objeto PGSQL
-export async function data_negocio() {
-
-}
-
-
-function validarToken(token) {
-    const resultado = secretData.validateToken(token);
-    return resultado
-    if (resultado.estado) {
-        return true;
-    } else {
-        return false;
-    };
-};

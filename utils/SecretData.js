@@ -36,7 +36,7 @@ export default class SecretData {
 
         jwt.verify(token, process.env.JWT_KEY, (err, data) => {
             if (err) {
-                obj = [{estado: false, msge: "Su Sesión ha Expirado"}];
+                obj = [{estado: false, msge: `No ha Inciado Sesión o \n Su Sesión ha Expirado`}];
             } else {
                 obj = [{estado: true, msge: "Token Válido"}];
             };
