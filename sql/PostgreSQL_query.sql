@@ -470,5 +470,31 @@ WHERE
     is_active = TRUE
     AND id_item_categ = 1;
 
+SELECT
+	a.id,
+	a.usuario,
+	a.nombres,
+	a.apellidos,
+	a.correo,
+	b.nombre AS rol
+FROM usuario a 
+	INNER JOIN rol b ON a.id_rol = b.id
+WHERE
+	a.is_active = TRUE
+	AND a.usuario = 'NEFELIN';
+
+SELECT 
+	a.nombre,
+	a.rut,
+	a.direccion,
+	a.descripcion,
+	a.logo,
+	a.is_active,
+	b.fecha
+FROM negocio a 
+	INNER JOIN usuario_negocio b ON a.id = b.id_negocio
+WHERE 
+	b.id_usuario = 1;
+    
 -- ---------------------------------------------------------------------
 -- ---------------------------------------------------------------------

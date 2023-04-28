@@ -91,10 +91,12 @@ export default class PGSQL {
     async updateItem_OfComanda(arrObj) {
         return transaccion_PagarPedidos(arrObj);
     }
-    // ----------------------------------------------------------------------
     async validarComandaYMesa(id_mesa) {
         return transaccion_ValidarComandaYMesa(id_mesa);
     };
+    // privado --------------------------------------------------------------
+    
+    // ----------------------------------------------------------------------
 };
 
 // funcion que ejecuta todas las querys de la clase

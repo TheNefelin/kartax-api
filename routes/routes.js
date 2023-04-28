@@ -89,21 +89,32 @@ misRutas.put("/comanda-deta", async (req, res) => {
     }
 });
 
-// privado -------------------------------------------------------------- //
-// ---------------------------------------------------------------------- //
+// inicia sesion y devuelve un token en resultado.data
+misRutas.post("/iniciar-sesion", async (req, res) => {
+    const { usuario, clave } = req.body;
+    const resultado = await fn.iniciar_sesion(usuario, clave);
+    res.status(resultado.cod).json(resultado.data);
+});
+
+//valida el token
 misRutas.get("/token/:token", async (req, res) => {
     const { token } = req.params;
     const resultado = secretData.validateToken(token);
     res.json(resultado);
 });
 
-misRutas.post("/iniciar-sesion", async (req, res) => {
-    const resultado = await fn.iniciar_sesion(req.body);
-    res.status(resultado.cod).json(resultado.data);
+// privado -------------------------------------------------------------- //
+// ---------------------------------------------------------------------- //
+
+misRutas.get("/admin/:usuario:token", async (req, res) => {
+    const { token } =  req.params;
+    const resultado = await fn.admin(token);
+    res.json(resultado);
 });
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
+
 misRutas.post("/upload", (req, res) => {
     if (!req.files || Object.keys(req.files).length === 0) {
         return res.status(400).send("No ha Enviado Archivo")

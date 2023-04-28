@@ -7,9 +7,7 @@ const pgSql = new PGSQL();
 const error = { cod: 400, data: [] };
 
 // validaciones para inciiar sesion y crear token
-export async function iniciar_sesion(obj) {
-    const { usuario, clave } = obj;
-
+export async function iniciar_sesion(usuario, clave) {
     if (!usuario || !clave) {
         return error
     };
@@ -29,3 +27,7 @@ export async function iniciar_sesion(obj) {
     return {cod: 201, data: [{token}]}
 };
 
+export async function admin(token) {
+
+    return { token };
+}
