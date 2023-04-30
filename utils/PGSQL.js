@@ -115,6 +115,7 @@ export default class PGSQL {
     async getNegocios_ByIdUsuario(id_usuario) {
         return await myQuery(
             `SELECT 
+                a.id,
                 a.nombre,
                 a.rut,
                 a.direccion,

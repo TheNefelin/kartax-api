@@ -34,6 +34,7 @@ export async function iniciar_sesion(usuario, clave) {
 // ------------------------------------------------------------------------
 
 export async function admin(usuario, token) {
+    console.log({usuario, token})
     if (!usuario || !token) {
         return error;
     };
@@ -41,7 +42,7 @@ export async function admin(usuario, token) {
     const resultadoToken = secretData.validateToken(token);
 
     if (!resultadoToken[0].estado) {
-        error.data.push(resultadoToken[0]);
+        error.data = [{ token: resultadoToken[0] }];
         return error;
     };
 
@@ -57,7 +58,7 @@ export async function admin_negocios(usuario, token) {
     const resultadoToken = secretData.validateToken(token);
 
     if (!resultadoToken[0].estado) {
-        error.data.push(resultadoToken[0]);
+        error.data = [{ token: resultadoToken[0] }];
         return error;
     };
 
