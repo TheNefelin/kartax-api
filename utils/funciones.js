@@ -34,7 +34,6 @@ export async function iniciar_sesion(usuario, clave) {
 // ------------------------------------------------------------------------
 
 export async function admin(usuario, token) {
-    console.log({usuario, token})
     if (!usuario || !token) {
         return error;
     };
