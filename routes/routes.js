@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, json } from "express";
 import * as fn from "../utils/funciones.js"
 
 import SecretData from "../utils/SecretData.js";
@@ -105,11 +105,16 @@ misRutas.get("/token/:token", async (req, res) => {
 
 // privado -------------------------------------------------------------- //
 // ---------------------------------------------------------------------- //
+misRutas.get("/admin/:usuario&:token", async (req, res) => {
+    const { usuario, token } = req.params;
+    const resultado = await fn.admin(usuario, token);
+    res.status(resultado.cod).json(resultado.data);
+});
 
-misRutas.get("/admin/:usuario:token", async (req, res) => {
-    const { token } =  req.params;
-    const resultado = await fn.admin(token);
-    res.json(resultado);
+misRutas.get("/admin/negocios/:usuario&:token", async (req, res) => {
+    const { usuario, token } = req.params;
+    const resultado = await fn.admin_negocios(usuario, token);
+    res.status(resultado.cod).json(resultado.data);
 });
 
 // ----------------------------------------------------------------------
