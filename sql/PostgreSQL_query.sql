@@ -496,5 +496,22 @@ FROM negocio a
 WHERE 
 	b.id_usuario = 1;
     
+SELECT 
+	a.id,
+	a.usuario,
+	a.nombres,
+	a.apellidos,
+	a.correo,
+	a.is_active AS estado,
+	b.nombre AS rol,
+	c.fecha
+FROM usuario a 
+	INNER JOIN rol b ON a.id_rol = b.id
+	INNER JOIN usuario_negocio c ON a.id = c.id_usuario
+WHERE
+	b.id = 3
+	AND c.id_negocio = 1
+
+
 -- ---------------------------------------------------------------------
 -- ---------------------------------------------------------------------

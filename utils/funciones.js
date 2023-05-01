@@ -67,6 +67,24 @@ export async function admin_negocios(usuario, token) {
     return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios }] };
 };
 
+export async function admin_usuarios(usuario, token) {
+    if (!usuario || !token) {
+        return error;
+    };
+
+    const resultadoToken = secretData.validateToken(token);
+
+    if (!resultadoToken[0].estado) {
+        error.data = [{ token: resultadoToken[0] }];
+        return error;
+    };
+
+    const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
+    const arrUsuarios = await pgSql.getUsuarios_ByIdNegocio(arrUsuario[0].id_negocio);
+
+    return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, usuarios: arrUsuarios }] };
+};
+
 // funciones que extraen informacion desde la API -------------------------
 // ------------------------------------------------------------------------
 

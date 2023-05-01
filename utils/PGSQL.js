@@ -103,9 +103,11 @@ export default class PGSQL {
                 a.nombres,
                 a.apellidos,
                 a.correo,
-                b.nombre AS rol
+                b.nombre AS rol,
+                c.id_negocio
             FROM usuario a 
                 INNER JOIN rol b ON a.id_rol = b.id
+                INNER JOIN usuario_negocio c ON a.id = c.id_negocio
             WHERE
                 a.is_active = TRUE
                 AND a.usuario = $1;`,
@@ -130,6 +132,27 @@ export default class PGSQL {
             [id_usuario]
         );
     };
+    async getUsuarios_ByIdNegocio(id_negocio) {
+        //solo usuarios con el rol basico
+        return await myQuery(
+            `SELECT 
+                a.id,
+                a.usuario,
+                a.nombres,
+                a.apellidos,
+                a.correo,
+                a.is_active AS estado,
+                b.nombre AS rol,
+                c.fecha
+            FROM usuario a 
+                INNER JOIN rol b ON a.id_rol = b.id
+                INNER JOIN usuario_negocio c ON a.id = c.id_usuario
+            WHERE
+                b.id = 3 
+                AND c.id_negocio = $1;`,
+            [id_negocio]
+        );
+    };    
     // ----------------------------------------------------------------------
 };
 
