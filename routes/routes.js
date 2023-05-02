@@ -117,6 +117,12 @@ misRutas.get("/admin/negocios/:usuario&:token", async (req, res) => {
     res.status(resultado.cod).json(resultado.data);
 });
 
+misRutas.post("/admin/negocios", async (req, res) => {
+    const { usuario, token, data } = req.body;
+    const resultado = await fn.admin_negocios_post(usuario, token, data);
+    res.status(resultado.cod).json(resultado.data);
+});
+
 misRutas.get("/admin/usuarios/:usuario&:token", async (req, res) => {
     const { usuario, token } = req.params;
     const resultado = await fn.admin_usuarios(usuario, token);

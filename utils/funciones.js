@@ -1,5 +1,6 @@
 import SecretData from "../utils/SecretData.js";
 import PGSQL from "../utils/PGSQL.js";
+import { application } from "express";
 
 const secretData = new SecretData();
 const pgSql = new PGSQL();
@@ -33,6 +34,7 @@ export async function iniciar_sesion(usuario, clave) {
 // funciones que responden a las rutas privadas ---------------------------
 // ------------------------------------------------------------------------
 
+// aun no esta definida
 export async function admin(usuario, token) {
     if (!usuario || !token) {
         return error;
@@ -49,6 +51,7 @@ export async function admin(usuario, token) {
     return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario }] };
 };
 
+// carga todos los negocios del usuario administrador
 export async function admin_negocios(usuario, token) {
     if (!usuario || !token) {
         return error;
@@ -67,6 +70,54 @@ export async function admin_negocios(usuario, token) {
     return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios }] };
 };
 
+// agrega nuevo negocio
+export async function admin_negocios_post(usuario, token, data) {
+    if (!usuario || !token) {
+        return error;
+    };
+
+    const resultadoToken = secretData.validateToken(token);
+
+    if (!resultadoToken[0].estado) {
+        error.data = [{ token: resultadoToken[0] }];
+        return error;
+    };
+
+    let { id, nombre, rut, direccion, descripcion, img, check } = data;
+
+    if (isNaN(id)) {
+        error.data = [{ token: resultadoToken[0], msge: "Debe Ingresar un ID Negocio Válido" }];
+        return error;
+    };
+
+    const resultadoNegocio = await pgSql.validarNegocio_ByUsuario(id, usuario);
+
+    if (parseInt(resultadoNegocio[0].cant) == 0) {
+        error.data = [{ token: resultadoToken[0], msge: "El Negocio no Pertenece al Usuario" }];
+        return error;
+    };
+
+    // se validan los campos
+    nombre = nombre ? nombre : "" ;
+    rut = rut ? rut : "" ;
+    direccion = direccion ? direccion : "" ;
+    descripcion = descripcion ? descripcion : "" ;
+    img = img ? img : "" ;
+    check = check == "on" ? true : false ;
+
+    const resultado = await pgSql.updateNegocio(id, nombre, rut, direccion, descripcion, img, check);
+    const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
+    const negocios = await pgSql.getNegocios_ByIdUsuario(arrUsuario[0].id);
+
+    if (resultado.length > 0) {
+        return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "Se ha Modificado Correctamente!!!" }] };
+    } else {
+        error.data = [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "NO se ha podido Modificado" }];
+        return error;
+    }
+};
+
+// carga todos los usuarios del usuario administrador
 export async function admin_usuarios(usuario, token) {
     if (!usuario || !token) {
         return error;

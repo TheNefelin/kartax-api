@@ -132,8 +132,8 @@ export default class PGSQL {
             [id_usuario]
         );
     };
+    //solo usuarios con el rol basico (b.id = 3)
     async getUsuarios_ByIdNegocio(id_negocio) {
-        //solo usuarios con el rol basico
         return await myQuery(
             `SELECT 
                 a.id,
@@ -152,7 +152,53 @@ export default class PGSQL {
                 AND c.id_negocio = $1;`,
             [id_negocio]
         );
-    };    
+    };
+    // valida si el negocio pertenece al usuario
+    async validarNegocio_ByUsuario(id_negocio, usuario) {
+        return await myQuery(
+            `SELECT 
+                COUNT(a.*) AS cant
+            FROM usuario_negocio a
+                INNER JOIN usuario b ON a.id_usuario = b.id
+            WHERE
+                a.id_negocio = $1 
+                AND b.usuario = $2;`,
+            [id_negocio, usuario]
+        );
+    };
+    // valida si el negocio pertenece al usuario
+    async updateNegocio(id, nombre, rut, direccion, descripcion, img, check) {
+        return await myQuery(
+            `UPDATE negocio SET
+                nombre = $2,
+                rut = $3,
+                direccion = $4,
+                descripcion = $5,
+                logo = $6,
+                is_active = $7
+            WHERE
+                id = $1
+
+            RETURNING id`,
+            [id, nombre, rut, direccion, descripcion, img, check]
+        );
+    };
+    // valida si el item pertenece al negocio del usuario (SIN IMPLEMENTAR AUN) 
+    async validarItem_ByUsuario(id_item, usuario) {
+        return await myQuery(
+            `SELECT
+                COUNT(a.id) AS cant
+            FROM item a 
+                INNER JOIN item_categ b ON a.id_item_categ = b.id
+                INNER JOIN tipo_alimento c ON b.id_tipo_alimento = c.id
+                INNER JOIN usuario_negocio d ON c.id_negocio = d.id_negocio
+                INNER JOIN usuario e ON d.id_usuario = e.id
+            WHERE
+                a.id = $1
+                AND e.usuario = $2;`,
+            [id_item, usuario]
+        );
+    };
     // ----------------------------------------------------------------------
 };
 
