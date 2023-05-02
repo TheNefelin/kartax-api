@@ -166,7 +166,22 @@ export default class PGSQL {
             [id_negocio, usuario]
         );
     };
-    // valida si el negocio pertenece al usuario
+    // crea un negocio
+    async createNegocio_test(id_usuario, nombre, rut, direccion, descripcion, img, check) {
+        return await transaccion_NuevoNegocio(id_usuario, nombre, rut, direccion, descripcion, img, check)
+    };
+    async createNegocio(arrObj) {
+        transaccion_NuevoNegocio()
+        return await myQuery(
+            `INSERT INTO negocio
+                (nombre, rut, direccion, descripcion, logo, is_Active)
+            VALUES
+                ($1, $2, $3, $4, $5, $6)
+            RETURNING id;`,
+            [nombre, rut, direccion, descripcion, img, check]
+        );
+    };
+    // modifica el negocio
     async updateNegocio(id, nombre, rut, direccion, descripcion, img, check) {
         return await myQuery(
             `UPDATE negocio SET
@@ -178,7 +193,6 @@ export default class PGSQL {
                 is_active = $7
             WHERE
                 id = $1
-
             RETURNING id`,
             [id, nombre, rut, direccion, descripcion, img, check]
         );
@@ -329,6 +343,34 @@ async function transaccion_PagarPedidos(arrObj) {
 
     return resultado;
 };
+
+async function transaccion_NuevoNegocio(id_usuario, arrObj) {
+    console.log(obj)
+
+    const pool = new Pool(secretData.conexionPG());
+
+    const resultado = [];
+
+    try {
+        await pool.connect();
+        await pool.query("BEGIN");
+
+        const id_negocio = await pool.query("SELECT id, nombre FROM item_categ WHERE id_tipo_alimento = $1;", [id_tipo_alimento]);
+
+
+        console.log("Transaccion Exitosa!!!");
+        await pool.query("COMMIT");
+    } catch (err) {
+        await pool.query("ROLLBACK");
+        console.log("Transaccion Cancelada!!!");
+        console.log(err);
+    } finally {
+        await pool.release;
+        pool.end();
+    };
+
+    return resultado;
+}
 
 // Funcion que carga la categorias de item con sus items para el front
 async function get_ItemCateg_Items(id_tipo_alimento) {

@@ -70,8 +70,43 @@ export async function admin_negocios(usuario, token) {
     return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios }] };
 };
 
-// agrega nuevo negocio
+// agreagar nuevo negocio
 export async function admin_negocios_post(usuario, token, data) {
+    if (!usuario || !token) {
+        return error;
+    };
+
+    const resultadoToken = secretData.validateToken(token);
+
+    if (!resultadoToken[0].estado) {
+        error.data = [{ token: resultadoToken[0] }];
+        return error;
+    };
+
+    let { nombre, rut, direccion, descripcion, img, check } = data;
+
+        // se validan los campos
+        nombre = nombre ? nombre : "" ;
+        rut = rut ? rut : "" ;
+        direccion = direccion ? direccion : "" ;
+        descripcion = descripcion ? descripcion : "" ;
+        img = img ? img : "" ;
+        check = check == "on" ? true : false ;
+
+        const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
+        const negocios = await pgSql.getNegocios_ByIdUsuario(arrUsuario[0].id);
+        const resultado = await pgSql.createNegocio(arrUsuario[0].id, nombre, rut, direccion, descripcion, img, check);
+
+        if (resultado.length > 0) {
+            return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "Se ha Agregado Correctamente!!!" }] };
+        } else {
+            error.data = [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "NO se ha podido Agregar" }];
+            return error;
+        }
+};
+
+// modificar negocio
+export async function admin_negocios_put(usuario, token, data) {
     if (!usuario || !token) {
         return error;
     };
@@ -90,6 +125,7 @@ export async function admin_negocios_post(usuario, token, data) {
         return error;
     };
 
+    // valida si el negocio pertenece al usuario
     const resultadoNegocio = await pgSql.validarNegocio_ByUsuario(id, usuario);
 
     if (parseInt(resultadoNegocio[0].cant) == 0) {
