@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS public.caja
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
     monto integer NOT NULL,
     fecha_ini date NOT NULL,
-    fecha_fin date NOT NULL,
+    fecha_fin date,
     is_active boolean NOT NULL,
     id_usuario integer NOT NULL,
     CONSTRAINT caja_pkey PRIMARY KEY (id)
@@ -370,6 +370,11 @@ CREATE EXTENSION pgcrypto;
 -- 	(nombre, descripcion, is_active, id_negocio)
 -- VALUES
 -- 	('Barra', 'Interna', TRUE, 1);
+
+-- INSERT INTO caja
+-- 	(monto, fecha_ini, fecha_fin, is_active, id_usuario)
+-- VALUES
+-- 	(500000, NOW(), NULL, TRUE, 1);
 
 -- UPDATE negocio SET logo = '/img/kartax/logo.png' WHERE id = 1;
 -- ---------------------------------------------------------------------
