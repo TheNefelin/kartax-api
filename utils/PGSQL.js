@@ -148,7 +148,10 @@ export default class PGSQL {
         );
     };
     // obtiene usuarios atravez del usuario admin
-    async getUsuarios_ByUsuarioAdmin(usuario) {
+    async createUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado) {
+        return [];
+    };
+    async updateUsuario(usuario) {
         return [];
     };
     // solo usuarios con el rol basico (b.id = 3)

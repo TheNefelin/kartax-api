@@ -242,14 +242,15 @@ export async function admin_usuarios_post(usuarioAdmin, token, data) {
     clave = clave ? clave : "";
     estado = estado == "on" ? true : false;
 
+    // crea usuario
     const resultado = await pgSql.createUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado);
-
-    // if (resultado.length > 0) {
-    //     return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "Se ha Agregado Correctamente!!!" }] };
-    // } else {
-    //     error.data = [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "NO se ha podido Agregar" }];
-    //     return error;
-    // };
+    if (resultado.length > 0) {
+        ok.data[0].msge = msge.post;
+        return ok
+    } else {
+        error.data[0].msge = msge.errorBD;
+        return error;
+    };
 };
 
 // funciones que extraen informacion desde la API -------------------------
