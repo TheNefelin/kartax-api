@@ -1,0 +1,64 @@
+[
+    {
+        "POST": "http://localhost:3001/registrarse"
+    },
+    {
+        "txtNombres":"FRANCISCO",
+        "txtApellidos":"CARMONA",
+        "txtUser":"NEFELIN",
+        "txtEmail":"A@A.CL",
+        "txtPass1":"",
+        "txtPass2":""
+    },
+    {
+        "usuario": "NEFELIN",
+        "token": "123",
+        "data": {
+            "id": 1,
+            "nombre": "asdasd",
+            "rut": "00.000.000-0",
+            "direccion": "Viña del Mar",
+            "descripcion": "Demo",
+            "img": "",
+            "check": "on"
+        }
+    },
+    {
+        "POST": "http://localhost:3001/iniciar-sesion"
+    },
+    {
+        "txtUser":"FRANCISCO",
+        "txtPass":"123456"
+    },    
+    {
+        "POST": "http://localhost:3001/admin/negocios"
+    },
+    {
+        "usuario": "NEFELIN",
+        "token": "123",
+        "data": {
+            "nombre": "asdasd",
+            "rut": "00.000.000-0",
+            "direccion": "Viña del Mar",
+            "descripcion": "Demo",
+            "img": "",
+            "check": "on"
+        }
+    },
+    {
+        "PUT": "http://localhost:3001/admin/negocios"
+    },
+    {
+        "usuario": "NEFELIN",
+        "token": "123",
+        "data": {
+            "id": 1,
+            "nombre": "asdasd",
+            "rut": "00.000.000-0",
+            "direccion": "Viña del Mar",
+            "descripcion": "Demo",
+            "img": "",
+            "check": "on"
+        }
+    }
+]

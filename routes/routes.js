@@ -89,10 +89,19 @@ misRutas.put("/comanda-deta", async (req, res) => {
     }
 });
 
+// registrar una nueva cuenta
+misRutas.post("/registrar-usuario", async (req, res) => {
+    const { txtNombres, txtApellidos, txtUser, txtEmail, txtPass1, txtPass2 } = req.body;
+    const resultado = await fn.registrarse(txtNombres, txtApellidos, txtUser, txtEmail, txtPass1, txtPass2);
+    console.log(resultado);
+    res.status(resultado.cod).json(resultado.data);
+});
+
 // inicia sesion y devuelve un token en resultado.data
 misRutas.post("/iniciar-sesion", async (req, res) => {
-    const { usuario, clave } = req.body;
-    const resultado = await fn.iniciar_sesion(usuario, clave);
+    const { txtUser, txtPass } = req.body;
+    const resultado = await fn.iniciar_sesion(txtUser, txtPass);
+    console.log(resultado);
     res.status(resultado.cod).json(resultado.data);
 });
 
@@ -100,6 +109,7 @@ misRutas.post("/iniciar-sesion", async (req, res) => {
 misRutas.get("/token/:token", async (req, res) => {
     const { token } = req.params;
     const resultado = secretData.validateToken(token);
+    console.log(resultado);
     res.json(resultado);
 });
 
@@ -114,25 +124,35 @@ misRutas.get("/admin/:usuario&:token", async (req, res) => {
 misRutas.get("/admin/negocios/:usuario&:token", async (req, res) => {
     const { usuario, token } = req.params;
     const resultado = await fn.admin_negocios(usuario, token);
+    console.log(resultado);
     res.status(resultado.cod).json(resultado.data);
 });
 
 misRutas.post("/admin/negocios", async (req, res) => {
     const { usuario, token, data } = req.body;
-    console.log(req.body)
     const resultado = await fn.admin_negocios_post(usuario, token, data);
+    console.log(resultado);
     res.status(resultado.cod).json(resultado.data);
 });
 
 misRutas.put("/admin/negocios", async (req, res) => {
     const { usuario, token, data } = req.body;
     const resultado = await fn.admin_negocios_put(usuario, token, data);
+    console.log(resultado);
     res.status(resultado.cod).json(resultado.data);
 });
 
 misRutas.get("/admin/usuarios/:usuario&:token", async (req, res) => {
     const { usuario, token } = req.params;
     const resultado = await fn.admin_usuarios(usuario, token);
+    console.log(resultado);
+    res.status(resultado.cod).json(resultado.data);
+});
+
+misRutas.post("/admin/usuarios", async (req, res) => {
+    const { usuario, token, data } = req.body;
+    const resultado = await fn.admin_usuarios_post(usuario, token, data);
+    console.log(resultado);
     res.status(resultado.cod).json(resultado.data);
 });
 

@@ -7,25 +7,37 @@ const secretData = new SecretData(); // la conexion secreta a la bd
 export default class PGSQL {
     constructor() {}
     // ----------------------------------------------------------------------
+    async validar_correo(correo) {
+        return await myQuery(
+            `SELECT COUNT(correo) AS cont FROM usuario WHERE correo = $1`,
+            [correo]
+        );
+    };
+    async validar_usuario(usuario) {
+        return await myQuery(
+            `SELECT COUNT(usuario) AS cont FROM usuario WHERE usuario = $1`,
+            [usuario]
+        );
+    };
+    async registrarAdmin(nombres, apellidos, correo, usuario, clave) {
+        return await myQuery(
+            `INSERT INTO usuario 
+            	(nombres, apellidos, correo, usuario, clave, is_active, id_rol) 
+            VALUES 
+                ($1, $2, $3, $4, crypt($5, gen_salt('bf')), TRUE, 2) RETURNING id;`,
+            [nombres, apellidos, usuario, correo, clave]
+        );
+    };
     async iniciar_sesion(usuario, clave) {
         return await myQuery(
-            `SELECT 
-                COUNT(id) AS cant 
-            FROM usuario 
-            WHERE 
-                usuario = $1 
-                AND clave = crypt($2, clave);`, 
+            `SELECT COUNT(id) AS cant FROM usuario WHERE usuario = $1 AND clave = crypt($2, clave);`, 
             [usuario, clave]
         );
     };
     // publico --------------------------------------------------------------
     async getNegocio_ByIdMesa(id_mesa) {
         return await myQuery(
-            `SELECT 
-                b.id,
-                b.nombre,
-                b.logo,
-                a.id AS id_mesa 
+            `SELECT b.id, b.nombre, b.logo, a.id AS id_mesa 
             FROM mesa a 
                 INNER JOIN negocio b ON b.id = a.id_negocio
             WHERE
@@ -95,29 +107,11 @@ export default class PGSQL {
         return transaccion_ValidarComandaYMesa(id_mesa);
     };
     // privado --------------------------------------------------------------
-    async getUsuario_ByUsuario(usuario) {
-        return await myQuery(
-            `SELECT
-                a.id,
-                a.usuario,
-                a.nombres,
-                a.apellidos,
-                a.correo,
-                b.nombre AS rol,
-                c.id_negocio
-            FROM usuario a 
-                INNER JOIN rol b ON a.id_rol = b.id
-                INNER JOIN usuario_negocio c ON a.id = c.id_negocio
-            WHERE
-                a.is_active = TRUE
-                AND a.usuario = $1;`,
-            [usuario]
-        );
-    };
-    async getNegocios_ByIdUsuario(id_usuario) {
+    // obtiene negocio atravez del usuario admin
+    async getNegocios_ByUsuarioAdmin(usuario) {
         return await myQuery(
             `SELECT 
-                a.id,
+                a.id AS id_negocio,
                 a.nombre,
                 a.rut,
                 a.direccion,
@@ -127,59 +121,15 @@ export default class PGSQL {
                 b.fecha
             FROM negocio a 
                 INNER JOIN usuario_negocio b ON a.id = b.id_negocio
+                INNER JOIN usuario c ON b.id_usuario = c.id
             WHERE 
-                b.id_usuario = $1;`,
-            [id_usuario]
-        );
-    };
-    //solo usuarios con el rol basico (b.id = 3)
-    async getUsuarios_ByIdNegocio(id_negocio) {
-        return await myQuery(
-            `SELECT 
-                a.id,
-                a.usuario,
-                a.nombres,
-                a.apellidos,
-                a.correo,
-                a.is_active AS estado,
-                b.nombre AS rol,
-                c.fecha
-            FROM usuario a 
-                INNER JOIN rol b ON a.id_rol = b.id
-                INNER JOIN usuario_negocio c ON a.id = c.id_usuario
-            WHERE
-                b.id = 3 
-                AND c.id_negocio = $1;`,
-            [id_negocio]
-        );
-    };
-    // valida si el negocio pertenece al usuario
-    async validarNegocio_ByUsuario(id_negocio, usuario) {
-        return await myQuery(
-            `SELECT 
-                COUNT(a.*) AS cant
-            FROM usuario_negocio a
-                INNER JOIN usuario b ON a.id_usuario = b.id
-            WHERE
-                a.id_negocio = $1 
-                AND b.usuario = $2;`,
-            [id_negocio, usuario]
+                c.usuario = $1;`,
+            [usuario]
         );
     };
     // crea un negocio
-    async createNegocio_test(id_usuario, nombre, rut, direccion, descripcion, img, check) {
-        return await transaccion_NuevoNegocio(id_usuario, nombre, rut, direccion, descripcion, img, check)
-    };
-    async createNegocio(arrObj) {
-        transaccion_NuevoNegocio()
-        return await myQuery(
-            `INSERT INTO negocio
-                (nombre, rut, direccion, descripcion, logo, is_Active)
-            VALUES
-                ($1, $2, $3, $4, $5, $6)
-            RETURNING id;`,
-            [nombre, rut, direccion, descripcion, img, check]
-        );
+    async createNegocio(usuario, nombre, rut, direccion, descripcion, img, check) {
+        return await transaccion_NuevoNegocio(usuario, { nombre, rut, direccion, descripcion, img, check })
     };
     // modifica el negocio
     async updateNegocio(id, nombre, rut, direccion, descripcion, img, check) {
@@ -195,6 +145,67 @@ export default class PGSQL {
                 id = $1
             RETURNING id`,
             [id, nombre, rut, direccion, descripcion, img, check]
+        );
+    };
+    // obtiene usuarios atravez del usuario admin
+    async getUsuarios_ByUsuarioAdmin(usuario) {
+        return [];
+    };
+    // solo usuarios con el rol basico (b.id = 3)
+    async getUsuarios_ByUsuarioAdmin(usuario) {
+        return await myQuery(
+            `SELECT 
+                a.id,
+                a.usuario,
+                a.nombres,
+                a.apellidos,
+                a.correo,
+                a.is_active AS estado,
+                b.nombre AS rol,
+                c.fecha
+            FROM usuario a 
+                INNER JOIN rol b ON a.id_rol = b.id
+                INNER JOIN usuario_negocio c ON a.id = c.id_usuario
+                INNER JOIN usuario d ON c.id_negocio = d.id
+            WHERE
+                b.id = 3 
+                AND d.usuario = $1;`,
+            [usuario]
+        );
+    };
+    // valida si el negocio pertenece al usuario
+    async validarNegocio_ByUsuario(id_negocio, usuario) {
+        return await myQuery(
+            `SELECT 
+                COUNT(a.*) AS cant
+            FROM usuario_negocio a
+                INNER JOIN usuario b ON a.id_usuario = b.id
+            WHERE
+                a.id_negocio = $1 
+                AND b.usuario = $2;`,
+            [id_negocio, usuario]
+        );
+    };
+    async validar_demo(id_negocio, usuario) {
+        return await myQuery(
+            `SELECT 
+                a.id AS id_negocio,
+                a.nombre AS negocio,
+                a.logo,
+                c.id AS id_usuario,
+                c.usuario,
+                c.nombres,
+                c.apellidos,
+                d.id AS id_rol,
+                d.nombre AS rol
+            FROM negocio a 
+                INNER JOIN usuario_negocio b ON a.id = b.id_negocio
+                INNER JOIN usuario c ON b.id_usuario = c.id
+                INNER JOIN rol d ON c.id_rol = d.id
+            WHERE
+                b.id_negocio = 1 
+                AND c.usuario = 'NEFELIN';`,
+            [id_negocio, usuario]
         );
     };
     // valida si el item pertenece al negocio del usuario (SIN IMPLEMENTAR AUN) 
@@ -238,7 +249,6 @@ async function myQuery(sql, values) {
 // transaccion que valida la disponibilidad de la mesa y crea comanda si es que no existe
 async function transaccion_ValidarComandaYMesa(id_mesa) {
     const pool = new Pool(secretData.conexionPG());
-
     const resultado = [];
 
     try {
@@ -275,7 +285,6 @@ async function transaccion_ValidarComandaYMesa(id_mesa) {
 // transaccion agregar pedidos
 async function transaccion_AgregarPedidosAComanda(arrObj, id_comanda) {
     const pool = new Pool(secretData.conexionPG());
-
     const resultado = [];
 
     try {
@@ -311,7 +320,6 @@ async function transaccion_AgregarPedidosAComanda(arrObj, id_comanda) {
 // transaccion pagar pedido
 async function transaccion_PagarPedidos(arrObj) {
     const pool = new Pool(secretData.conexionPG());
-
     const resultado = [];
 
     try { 
@@ -344,19 +352,38 @@ async function transaccion_PagarPedidos(arrObj) {
     return resultado;
 };
 
-async function transaccion_NuevoNegocio(id_usuario, arrObj) {
-    console.log(obj)
-
+// transaccion crear nuevo negocio
+async function transaccion_NuevoNegocio(usuario, obj) {
     const pool = new Pool(secretData.conexionPG());
-
     const resultado = [];
 
     try {
         await pool.connect();
         await pool.query("BEGIN");
 
-        const id_negocio = await pool.query("SELECT id, nombre FROM item_categ WHERE id_tipo_alimento = $1;", [id_tipo_alimento]);
+        const id_usuario = await pool.query(
+            `SELECT id FROM usuario WHERE usuario = $1`, [usuario]
+        );
 
+        const id_negocio = await pool.query(
+            `INSERT INTO negocio
+                (nombre, rut, direccion, descripcion, logo, is_Active)
+            VALUES
+                ($1, $2, $3, $4, $5, $6)
+            RETURNING id;`,
+            [obj.nombre, obj.rut, obj.direccion, obj.descripcion, obj.img, obj.check]
+        );
+
+        const fecha = await pool.query(
+            `INSERT INTO usuario_negocio
+                (id_usuario, id_negocio, fecha)
+            VALUES
+                ($1, $2, NOW())
+            RETURNING fecha;`,
+            [id_usuario.rows[0].id, id_negocio.rows[0].id]
+        );
+
+        resultado.push({fecha: fecha.rows[0].fecha});
 
         console.log("Transaccion Exitosa!!!");
         await pool.query("COMMIT");
@@ -375,7 +402,6 @@ async function transaccion_NuevoNegocio(id_usuario, arrObj) {
 // Funcion que carga la categorias de item con sus items para el front
 async function get_ItemCateg_Items(id_tipo_alimento) {
     const pool = new Pool(secretData.conexionPG());
-
     const resultado = [];
 
     try {

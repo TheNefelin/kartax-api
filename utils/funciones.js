@@ -5,171 +5,251 @@ import { application } from "express";
 const secretData = new SecretData();
 const pgSql = new PGSQL();
 
-const error = { cod: 400, data: [] };
+const error = { cod: 401, data: [{ estado: false, msge: "" }] };
+const ok = { cod: 200, data: [{ estado: true, msge: "" }] };
+
+const msge = {
+    errorCompletar: "Debe Completar Todos los Campos",
+    errorClave: "La contraseña no Coincide",
+    errorCorreo: "El Correo ya Existe",
+    errorUsuario: "El Usuario ya Existe",
+    errorLogin: "Usuario o Contraseña Incorrecta",
+    errorBD: "Error al Conectarse a la BD",
+    errorSinDatos: "No Hay Registros Disponibles",
+    errorId: "El ID debe ser Numerico",
+    errorPermiso: "No Esta Autorizado para Modificar el Dato",
+    post: "Datos Ingresados Correctamente",
+    put: "Datos Modificado Correctamente",
+    login: "Sesion Iniciada Correctamente"
+};
 
 // funciones que responden a las rutas publicas ---------------------------
 // ------------------------------------------------------------------------
 
+// registrar Nuevo Usuario
+export async function registrarse(txtNombres, txtApellidos, txtUser, txtEmail, txtPass1, txtPass2) {
+    // valida que todos los campos tengan datos
+    if (!txtNombres || !txtApellidos || !txtUser || !txtEmail || !txtPass1 || !txtPass2) {
+        error.data[0].msge = msge.errorCompletar;
+        return error;
+    };
+    // valida que la contraseña coincida
+    if (txtPass1 !== txtPass2) {
+        error.data[0].msge = msge.errorClave;
+        return error;
+    };
+    // valida que el correo no exista
+    const correo = await pgSql.validar_correo(txtEmail);
+    if (correo[0].cont > 0) {
+        error.data[0].msge = msge.errorCorreo;
+        return error;
+    };
+    // valida que el usuario no exista
+    const usuario = await pgSql.validar_usuario(txtUser);
+    if (usuario[0].cont > 0) {
+        error.data[0].msge = msge.errorUsuario;
+        return error;
+    }
+    // crea nuevo usuario
+    const nuevoUsuario = await pgSql.registrarAdmin(txtNombres, txtApellidos, txtUser, txtEmail, txtPass1);
+    if (nuevoUsuario.length > 0) {
+        ok.data[0].msge = msge.post;
+        return ok
+    } else {
+        error.data[0].msge = msge.errorBD;
+        return error;
+    };
+};
+
 // validaciones para inciiar sesion y crear token
 export async function iniciar_sesion(usuario, clave) {
+    // valida que todos los campos tengan datos
     if (!usuario || !clave) {
-        return error
+        error.data[0].msge = msge.errorCompletar;
+        return error;
     };
-
+    // valida el inicio sesion
     const resultado = await pgSql.iniciar_sesion(usuario, clave);
-    
     if (resultado.length > 0) {
         if (resultado[0].cant == 0) {
-            return error
-        }; 
+            error.data[0].msge = msge.errorLogin;
+            return error;
+        }
     } else {
-        return error
+        error.data[0].msge = msge.errorBD;
+        return error;
     }
-
+    // crea token despues d evalidar inicio sesion
     const token = secretData.newToken(usuario, clave, 60);
-
-    return {cod: 201, data: [{ token }]}
+    ok.data[0].token = token;
+    ok.data[0].msge = msge.login;
+    return ok
 };
 
 // funciones que responden a las rutas privadas ---------------------------
 // ------------------------------------------------------------------------
 
 // aun no esta definida
-export async function admin(usuario, token) {
-    if (!usuario || !token) {
+export async function admin(usuarioAdmin, token) {
+    // valida que todos los campos tengan datos
+    if (!usuarioAdmin || !token) {
+        error.data[0].msge = msge.errorCompletar;
         return error;
     };
-
+    // valida token
     const resultadoToken = secretData.validateToken(token);
-
     if (!resultadoToken[0].estado) {
-        error.data = [{ token: resultadoToken[0] }];
+        error.data[0].msge = resultadoToken[0].msge;
         return error;
     };
-
-    const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
-    return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario }] };
+    return ok;
 };
 
 // carga todos los negocios del usuario administrador
-export async function admin_negocios(usuario, token) {
-    if (!usuario || !token) {
+export async function admin_negocios(usuarioAdmin, token) {
+    // valida que todos los campos tengan datos
+    if (!usuarioAdmin || !token) {
+        error.data[0].msge = msge.errorCompletar;
         return error;
     };
-
+    // valida token
     const resultadoToken = secretData.validateToken(token);
-
     if (!resultadoToken[0].estado) {
-        error.data = [{ token: resultadoToken[0] }];
+        error.data[0].msge = resultadoToken[0].msge;
         return error;
     };
-
-    const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
-    const negocios = await pgSql.getNegocios_ByIdUsuario(arrUsuario[0].id);
-
-    return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios }] };
+    // devuelve los negocios encontrados
+    const arrNegocios = await pgSql.getNegocios_ByUsuarioAdmin(usuarioAdmin);
+    ok.data[0].negocios = arrNegocios;
+    return ok;
 };
 
 // agreagar nuevo negocio
-export async function admin_negocios_post(usuario, token, data) {
-    if (!usuario || !token) {
+export async function admin_negocios_post(usuarioAdmin, token, data) {
+    // valida que todos los campos tengan datos
+    if (!usuarioAdmin || !token) {
+        error.data[0].msge = msge.errorCompletar;
         return error;
     };
-
+    // valida token
     const resultadoToken = secretData.validateToken(token);
-
     if (!resultadoToken[0].estado) {
-        error.data = [{ token: resultadoToken[0] }];
+        error.data[0].msge = resultadoToken[0].msge;
         return error;
     };
-
+    // se validan los campos
     let { nombre, rut, direccion, descripcion, img, check } = data;
-
-        // se validan los campos
-        nombre = nombre ? nombre : "" ;
-        rut = rut ? rut : "" ;
-        direccion = direccion ? direccion : "" ;
-        descripcion = descripcion ? descripcion : "" ;
-        img = img ? img : "" ;
-        check = check == "on" ? true : false ;
-
-        const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
-        const negocios = await pgSql.getNegocios_ByIdUsuario(arrUsuario[0].id);
-        const resultado = await pgSql.createNegocio(arrUsuario[0].id, nombre, rut, direccion, descripcion, img, check);
-
-        if (resultado.length > 0) {
-            return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "Se ha Agregado Correctamente!!!" }] };
-        } else {
-            error.data = [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "NO se ha podido Agregar" }];
-            return error;
-        }
+    nombre = nombre ? nombre : "";
+    rut = rut ? rut : "";
+    direccion = direccion ? direccion : "";
+    descripcion = descripcion ? descripcion : "";
+    img = img ? img : "";
+    check = check == "on" ? true : false;
+    // crea un nuevo negocio
+    const resultado = await pgSql.createNegocio(usuarioAdmin, nombre, rut, direccion, descripcion, img, check);
+    if (resultado.length > 0) {
+        ok.data[0].msge = msge.post;
+        return ok
+    } else {
+        error.data[0].msge = msge.errorBD;
+        return error;
+    };
 };
 
 // modificar negocio
-export async function admin_negocios_put(usuario, token, data) {
-    if (!usuario || !token) {
+export async function admin_negocios_put(usuarioAdmin, token, data) {
+    // valida que todos los campos tengan datos
+    if (!usuarioAdmin || !token) {
+        error.data[0].msge = msge.errorCompletar;
         return error;
     };
-
+    // valida token
     const resultadoToken = secretData.validateToken(token);
-
     if (!resultadoToken[0].estado) {
-        error.data = [{ token: resultadoToken[0] }];
+        error.data[0].msge = resultadoToken[0].msge;
         return error;
     };
-
+    // valida el id
     let { id, nombre, rut, direccion, descripcion, img, check } = data;
-
     if (isNaN(id)) {
-        error.data = [{ token: resultadoToken[0], msge: "Debe Ingresar un ID Negocio Válido" }];
+        error.data[0].msge = msge.errorId;
         return error;
     };
-
-    // valida si el negocio pertenece al usuario
-    const resultadoNegocio = await pgSql.validarNegocio_ByUsuario(id, usuario);
-
+    // // valida si el negocio pertenece al usuarioAdmin
+    const resultadoNegocio = await pgSql.validarNegocio_ByUsuario(id, usuarioAdmin);
     if (parseInt(resultadoNegocio[0].cant) == 0) {
-        error.data = [{ token: resultadoToken[0], msge: "El Negocio no Pertenece al Usuario" }];
+        error.data[0].msge = msge.errorPermiso;
         return error;
     };
-
     // se validan los campos
-    nombre = nombre ? nombre : "" ;
-    rut = rut ? rut : "" ;
-    direccion = direccion ? direccion : "" ;
-    descripcion = descripcion ? descripcion : "" ;
-    img = img ? img : "" ;
-    check = check == "on" ? true : false ;
-
+    nombre = nombre ? nombre : "";
+    rut = rut ? rut : "";
+    direccion = direccion ? direccion : "";
+    descripcion = descripcion ? descripcion : "";
+    img = img ? img : "";
+    check = check == "on" ? true : false;
+    // modifica negocio
     const resultado = await pgSql.updateNegocio(id, nombre, rut, direccion, descripcion, img, check);
-    const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
-    const negocios = await pgSql.getNegocios_ByIdUsuario(arrUsuario[0].id);
-
     if (resultado.length > 0) {
-        return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "Se ha Modificado Correctamente!!!" }] };
+        ok.data[0].msge = msge.put;
+        return ok
     } else {
-        error.data = [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "NO se ha podido Modificado" }];
+        error.data[0].msge = msge.errorBD;
         return error;
-    }
+    };
 };
 
 // carga todos los usuarios del usuario administrador
-export async function admin_usuarios(usuario, token) {
-    if (!usuario || !token) {
+export async function admin_usuarios(usuarioAdmin, token) {
+    // valida que todos los campos tengan datos
+    if (!usuarioAdmin || !token) {
+        error.data[0].msge = msge.errorCompletar;
         return error;
     };
-
+    // valida token
     const resultadoToken = secretData.validateToken(token);
-
     if (!resultadoToken[0].estado) {
-        error.data = [{ token: resultadoToken[0] }];
+        error.data[0].msge = resultadoToken[0].msge;
         return error;
     };
+    // devuelve los usuarios encontrados
+    const arrUsuarios = await pgSql.getUsuarios_ByUsuarioAdmin(usuarioAdmin);
+    ok.data[0].usuarios = arrUsuarios;
+    return ok;
+};
 
-    const arrUsuario = await pgSql.getUsuario_ByUsuario(usuario);
-    const arrUsuarios = await pgSql.getUsuarios_ByIdNegocio(arrUsuario[0].id_negocio);
+// agreagar nuevo usuario
+export async function admin_usuarios_post(usuarioAdmin, token, data) {
+    // valida que todos los campos tengan datos
+    if (!usuarioAdmin || !token) {
+        error.data[0].msge = msge.errorCompletar;
+        return error;
+    };
+    // valida token
+    const resultadoToken = secretData.validateToken(token);
+    if (!resultadoToken[0].estado) {
+        error.data[0].msge = resultadoToken[0].msge;
+        return error;
+    };
+    // valida los campos
+    let { nombres, apellidos, correo, usuario, clave, estado } = data;
 
-    return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, usuarios: arrUsuarios }] };
+    // se validan los campos
+    nombres = nombres ? nombres : "";
+    apellidos = apellidos ? apellidos : "";
+    correo = correo ? correo : "";
+    usuario = usuario ? usuario : "";
+    clave = clave ? clave : "";
+    estado = estado == "on" ? true : false;
+
+    const resultado = await pgSql.createUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado);
+
+    // if (resultado.length > 0) {
+    //     return { cod: 201, data: [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "Se ha Agregado Correctamente!!!" }] };
+    // } else {
+    //     error.data = [{ token: resultadoToken[0], usuario: arrUsuario, negocios, msge: "NO se ha podido Agregar" }];
+    //     return error;
+    // };
 };
 
 // funciones que extraen informacion desde la API -------------------------

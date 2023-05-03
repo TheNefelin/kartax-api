@@ -371,6 +371,7 @@ CREATE EXTENSION pgcrypto;
 -- VALUES
 -- 	('Barra', 'Interna', TRUE, 1);
 
+-- UPDATE negocio SET logo = '/img/kartax/logo.png' WHERE id = 1;
 -- ---------------------------------------------------------------------
 -- ---------------------------------------------------------------------
 SELECT * FROM rol;
