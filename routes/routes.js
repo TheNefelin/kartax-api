@@ -159,6 +159,14 @@ misRutas.post("/admin/usuarios", async (req, res) => {
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
+misRutas.post("/encuesta", async (req, res) => {
+    console.log(req.body)
+    const { experiencia, velocidad, intuitivo, recomendable, sugerencia } = req.body;
+    const resultado = await fn.encuesta_post(experiencia, velocidad, intuitivo, recomendable, sugerencia);
+    console.log(resultado);
+    res.status(resultado.cod).json(resultado.data);
+});
+
 misRutas.post("/upload", (req, res) => {
     if (!req.files || Object.keys(req.files).length === 0) {
         return res.status(400).send("No ha Enviado Archivo")

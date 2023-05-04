@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS public.salida
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
     fecha date NOT NULL,
     id_caja integer NOT NULL,
+    id_comanda integer NOT NULL,
     CONSTRAINT salida_pkey PRIMARY KEY (id)
 );
 
@@ -284,7 +285,6 @@ CREATE EXTENSION pgcrypto;
 -- 	usuario = 'NEFELIN' AND
 -- 	clave = crypt('123456', clave);
 
-
 -- INSERT INTO rol
 -- 	(nombre)
 -- VALUES
@@ -300,7 +300,7 @@ CREATE EXTENSION pgcrypto;
 -- INSERT INTO negocio
 -- 	(nombre, rut, direccion, descripcion, logo, is_active)
 -- VALUES
--- 	('Kartax', '00.000.000-0', 'Viña del Mar', 'Demo', '/img/logo.ico', TRUE);
+-- 	('Kartax', '00.000.000-0', 'Viña del Mar', 'Demo', '/img/kartax/logo.ico', TRUE);
 
 -- INSERT INTO usuario_negocio 
 -- 	(id_usuario, id_negocio, fecha)
@@ -319,9 +319,9 @@ CREATE EXTENSION pgcrypto;
 
 -- INSERT INTO tipo_alimento (nombre, img, is_active, id_negocio)
 -- VALUES 
--- 	('Para Beber', '/img/grupo_01.jpg', TRUE, 1),
--- 	('Tablas', '/img/grupo_03.jpg', TRUE, 1),
--- 	('Para chanchear', '/img/grupo_02.jpg', TRUE, 1);
+-- 	('Para Beber', '/img/kartax/grupo_01.jpg', TRUE, 1),
+-- 	('Tablas', '/img/kartax/grupo_03.jpg', TRUE, 1),
+-- 	('Para chanchear', '/img/kartax/grupo_02.jpg', TRUE, 1);
 
 -- INSERT INTO item_categ (nombre, id_tipo_alimento) 
 -- VALUES 
@@ -333,30 +333,30 @@ CREATE EXTENSION pgcrypto;
 
 -- INSERT INTO item (nombre, descripcion, precio, img, is_active, id_item_categ) 
 -- VALUES 
--- 	('Pils', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 5500, './img/item_01.png', TRUE, 1),
--- 	('Santa Sed', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 4800, './img/item_02.png', TRUE, 1),
--- 	('Blood', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 4500, './img/item_03.png', TRUE, 1),
--- 	('Heineken', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2500, './img/item_04.jpg', TRUE, 2),
--- 	('Kross', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3500, './img/item_05.jpg', TRUE, 2),
--- 	('Kunstmann', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2500, './img/item_06.jpg', TRUE, 2),
--- 	('Budweiser', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2000, './img/item_07.jpg', TRUE, 2),
--- 	('Royal', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2500, './img/item_08.jpg', TRUE, 2),
--- 	('Tabla de Carne', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 7000, './img/item_09.png', TRUE, 3),
--- 	('Tabla de Queso', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 7000, './img/item_10.png', TRUE, 3),
--- 	('Tabla Veggie', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 7000, './img/item_11.png', TRUE, 3),
--- 	('Papas Rústicas', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 5000, './img/item_12.png', TRUE, 3),
--- 	('Papas Merken', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 5000, './img/item_13.png', TRUE, 3),
--- 	('Papas Cheddar', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, './img/item_14.png', TRUE, 3),
--- 	('Hamburguesa de Res', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, './img/item_15.png', TRUE, 4),
--- 	('Hamburguesa Pollo Apanado', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, './img/item_16.png', TRUE, 4),
--- 	('Hamburguesa Doble Cheddar', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, './img/item_17.png', TRUE, 4),
--- 	('Hamburguesa Mechada', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, './img/item_18.png', TRUE, 4),
--- 	('Hamburguesa Veggie', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, './img/item_19.png', TRUE, 4),
--- 	('Hamburguesa Veggie Legumbres', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, './img/item_20.png', TRUE, 4),
--- 	('Completo Mexicano', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, './img/item_21.png', TRUE, 5),
--- 	('Completo Tocino', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, './img/item_22.png', TRUE, 5),
--- 	('Completo Italiano', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, './img/item_23.png', TRUE, 5),
--- 	('Completo Aleman', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, './img/item_24.png', TRUE, 5);
+-- 	('Pils', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 5500, '/img/kartax/item_01.png', TRUE, 1),
+-- 	('Santa Sed', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 4800, '/img/kartax/item_02.png', TRUE, 1),
+-- 	('Blood', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 4500, '/img/kartax/item_03.png', TRUE, 1),
+-- 	('Heineken', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2500, '/img/kartax/item_04.jpg', TRUE, 2),
+-- 	('Kross', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3500, '/img/kartax/item_05.jpg', TRUE, 2),
+-- 	('Kunstmann', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2500, '/img/kartax/item_06.jpg', TRUE, 2),
+-- 	('Budweiser', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2000, '/img/kartax/item_07.jpg', TRUE, 2),
+-- 	('Royal', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 2500, '/img/kartax/item_08.jpg', TRUE, 2),
+-- 	('Tabla de Carne', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 7000, '/img/kartax/item_09.png', TRUE, 3),
+-- 	('Tabla de Queso', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 7000, '/img/kartax/item_10.png', TRUE, 3),
+-- 	('Tabla Veggie', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 7000, '/img/kartax/item_11.png', TRUE, 3),
+-- 	('Papas Rústicas', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 5000, '/img/kartax/item_12.png', TRUE, 3),
+-- 	('Papas Merken', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 5000, '/img/kartax/item_13.png', TRUE, 3),
+-- 	('Papas Cheddar', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, '/img/kartax/item_14.png', TRUE, 3),
+-- 	('Hamburguesa de Res', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, '/img/kartax/item_15.png', TRUE, 4),
+-- 	('Hamburguesa Pollo Apanado', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, '/img/kartax/item_16.png', TRUE, 4),
+-- 	('Hamburguesa Doble Cheddar', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, '/img/kartax/item_17.png', TRUE, 4),
+-- 	('Hamburguesa Mechada', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, '/img/kartax/item_18.png', TRUE, 4),
+-- 	('Hamburguesa Veggie', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, '/img/kartax/item_19.png', TRUE, 4),
+-- 	('Hamburguesa Veggie Legumbres', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 6000, '/img/kartax/item_20.png', TRUE, 4),
+-- 	('Completo Mexicano', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, '/img/kartax/item_21.png', TRUE, 5),
+-- 	('Completo Tocino', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, '/img/kartax/item_22.png', TRUE, 5),
+-- 	('Completo Italiano', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, '/img/kartax/item_23.png', TRUE, 5),
+-- 	('Completo Aleman', 'nace de lupulo y cebada, y vive en una botella encerrada, puede ser morena o dorada, puede ser de trigo o cereza, para ser sincero sin rodeo digo, buena amiga es la cerveza"', 3000, '/img/kartax/item_24.png', TRUE, 5);
 
 -- INSERT INTO rrss
 -- 	(nombre, img)
@@ -372,9 +372,9 @@ CREATE EXTENSION pgcrypto;
 -- 	('Barra', 'Interna', TRUE, 1);
 
 -- INSERT INTO caja
--- 	(monto, fecha_ini, fecha_fin, is_active, id_usuario)
+-- 	(monto, fecha_ini, fecha_fin, id_usuario, is_active)
 -- VALUES
--- 	(500000, NOW(), NULL, TRUE, 1);
+-- 	(500000, NOW(), NULL, 1, TRUE, TRUE);
 
 -- UPDATE negocio SET logo = '/img/kartax/logo.png' WHERE id = 1;
 -- ---------------------------------------------------------------------
@@ -391,12 +391,15 @@ SELECT * FROM rrss;
 SELECT * FROM mesa;
 SELECT * FROM comanda;
 SELECT * FROM comanda_deta;
-------
 SELECT * FROM caja;
+------
 SELECT * FROM rrss_negocio;
 SELECT * FROM salida;
 SELECT * FROM salida_deta;
-
+------
+SELECT * FROM pedidos
+SELECT * FROM pedidos_estado
+SELECT * FROM encuesta
 -- ---------------------------------------------------------------------
 -- DROP TABLE public.rol CASCADE; 
 -- DROP TABLE public.usuario CASCADE; 
@@ -414,7 +417,10 @@ SELECT * FROM salida_deta;
 -- DROP TABLE public.rrss_negocio CASCADE;
 -- DROP TABLE public.salida CASCADE; 
 -- DROP TABLE public.salida_deta CASCADE; 
-
+------
+-- DROP TABLE public.pedidos CASCADE; 
+-- DROP TABLE public.pedidos_estado CASCADE; 
+-- DROP TABLE public.encuesta CASCADE; 
 -- ---------------------------------------------------------------------
 SELECT
 	a.nombre AS negocio,

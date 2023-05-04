@@ -24,7 +24,8 @@ export default class PGSQL {
             `INSERT INTO usuario 
             	(nombres, apellidos, correo, usuario, clave, is_active, id_rol) 
             VALUES 
-                ($1, $2, $3, $4, crypt($5, gen_salt('bf')), TRUE, 2) RETURNING id;`,
+                ($1, $2, $3, $4, crypt($5, gen_salt('bf')), TRUE, 2) 
+            RETURNING id;`,
             [nombres, apellidos, usuario, correo, clave]
         );
     };
@@ -35,6 +36,16 @@ export default class PGSQL {
         );
     };
     // publico --------------------------------------------------------------
+    async setEncuesta(experiencia, velocidad, intuitivo, recomendable, sugerencia) {
+        return await myQuery(
+            `INSERT INTO encuesta
+                (fecha, experiencia, velocidad, intuitivo, recomendable, sugerencia)
+            VALUES
+                (NOW(), $1, $2, $3, $4, $5)
+            RETURNING id`,
+            [experiencia, velocidad, intuitivo, recomendable, sugerencia]
+        );
+    };
     async getNegocio_ByIdMesa(id_mesa) {
         return await myQuery(
             `SELECT b.id, b.nombre, b.logo, a.id AS id_mesa 

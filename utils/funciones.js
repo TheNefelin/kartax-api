@@ -26,6 +26,25 @@ const msge = {
 // funciones que responden a las rutas publicas ---------------------------
 // ------------------------------------------------------------------------
 
+// guarda encuesta
+export async function encuesta_post(experiencia, velocidad, intuitivo, recomendable, sugerencia) {
+    // valida los campos
+    if (isNaN(experiencia) || isNaN(velocidad) || isNaN(intuitivo) || isNaN(recomendable)) {
+        error.data[0].msge = msge.errorCompletar;
+        return error;
+    };
+    // guarda la encuesta
+    const respuesta = await pgSql.setEncuesta(experiencia, velocidad, intuitivo, recomendable, sugerencia);
+
+    if (respuesta.length > 0) {
+        ok.data[0].msge = msge.post;r
+        return ok
+    } else {
+        error.data[0].msge = msge.errorBD;
+        return error;
+    };
+}
+
 // registrar Nuevo Usuario
 export async function registrarse(txtNombres, txtApellidos, txtUser, txtEmail, txtPass1, txtPass2) {
     // valida que todos los campos tengan datos
