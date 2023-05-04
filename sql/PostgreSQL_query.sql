@@ -1,13 +1,15 @@
 -- ---------------------------------------------------------------------
 -- ---------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS public.caja
 (
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
     monto integer NOT NULL,
     fecha_ini date NOT NULL,
     fecha_fin date,
-    is_active boolean NOT NULL,
     id_usuario integer NOT NULL,
+    is_active boolean NOT NULL,
+    is_pedido_active boolean NOT NULL,
     CONSTRAINT caja_pkey PRIMARY KEY (id)
 );
 
@@ -156,8 +158,41 @@ CREATE TABLE IF NOT EXISTS public.usuario_negocio
     CONSTRAINT usuario_negocio_pkey PRIMARY KEY (id_usuario, id_negocio)
 );
 
+CREATE TABLE IF NOT EXISTS public.pedidos
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    id_mesa integer NOT NULL,
+    id_item integer NOT NULL,
+    nom_item character varying NOT NULL,
+    precio_item integer NOT NULL,
+    fecha date NOT NULL,
+    id_estado integer NOT NULL,
+    id_caja integer,
+    PRIMARY KEY (id_item)
+);
+
+CREATE TABLE IF NOT EXISTS public.pedidos_estado
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    nombre character varying NOT NULL,
+    is_active boolean NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.encuesta
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    fecha date NOT NULL,
+    experiencia integer NOT NULL,
+    velocidad integer NOT NULL,
+    intuitivo integer NOT NULL,
+    recomendable integer NOT NULL,
+    sugerencia character varying,
+    PRIMARY KEY (id)
+);
+
 ALTER TABLE IF EXISTS public.caja
-    ADD CONSTRAINT caja_id_usuario_fkey FOREIGN KEY (id_usuario)
+    ADD FOREIGN KEY (id_usuario)
     REFERENCES public.usuario (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -165,23 +200,15 @@ ALTER TABLE IF EXISTS public.caja
 
 
 ALTER TABLE IF EXISTS public.color
-    ADD CONSTRAINT color_id_negocio_fkey FOREIGN KEY (id_negocio)
+    ADD FOREIGN KEY (id_negocio)
     REFERENCES public.negocio (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
 
 
-ALTER TABLE IF EXISTS public.comanda
-    ADD CONSTRAINT comanda_id_mesa_fkey FOREIGN KEY (id_mesa)
-    REFERENCES public.mesa (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
 ALTER TABLE IF EXISTS public.comanda_deta
-    ADD CONSTRAINT comanda_deta_id_comanda_fkey FOREIGN KEY (id_comanda)
+    ADD FOREIGN KEY (id_comanda)
     REFERENCES public.comanda (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -189,7 +216,7 @@ ALTER TABLE IF EXISTS public.comanda_deta
 
 
 ALTER TABLE IF EXISTS public.item
-    ADD CONSTRAINT item_id_item_categ_fkey FOREIGN KEY (id_item_categ)
+    ADD FOREIGN KEY (id_item_categ)
     REFERENCES public.item_categ (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -197,7 +224,7 @@ ALTER TABLE IF EXISTS public.item
 
 
 ALTER TABLE IF EXISTS public.item_categ
-    ADD CONSTRAINT item_categ_id_tipo_alimento_fkey FOREIGN KEY (id_tipo_alimento)
+    ADD FOREIGN KEY (id_tipo_alimento)
     REFERENCES public.tipo_alimento (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -205,7 +232,7 @@ ALTER TABLE IF EXISTS public.item_categ
 
 
 ALTER TABLE IF EXISTS public.mesa
-    ADD CONSTRAINT mesa_id_negocio_fkey FOREIGN KEY (id_negocio)
+    ADD FOREIGN KEY (id_negocio)
     REFERENCES public.negocio (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -213,7 +240,7 @@ ALTER TABLE IF EXISTS public.mesa
 
 
 ALTER TABLE IF EXISTS public.rrss_negocio
-    ADD CONSTRAINT rrss_negocio_id_negocio_fkey FOREIGN KEY (id_negocio)
+    ADD FOREIGN KEY (id_negocio)
     REFERENCES public.negocio (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -221,23 +248,15 @@ ALTER TABLE IF EXISTS public.rrss_negocio
 
 
 ALTER TABLE IF EXISTS public.rrss_negocio
-    ADD CONSTRAINT rrss_negocio_id_rrss_fkey FOREIGN KEY (id_rrss)
+    ADD FOREIGN KEY (id_rrss)
     REFERENCES public.rrss (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
 
 
-ALTER TABLE IF EXISTS public.salida
-    ADD CONSTRAINT salida_id_caja_fkey FOREIGN KEY (id_caja)
-    REFERENCES public.caja (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
 ALTER TABLE IF EXISTS public.salida_deta
-    ADD CONSTRAINT salida_deta_id_salida_fkey FOREIGN KEY (id_salida)
+    ADD FOREIGN KEY (id_salida)
     REFERENCES public.salida (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -245,7 +264,7 @@ ALTER TABLE IF EXISTS public.salida_deta
 
 
 ALTER TABLE IF EXISTS public.tipo_alimento
-    ADD CONSTRAINT tipo_alimento_id_negocio_fkey FOREIGN KEY (id_negocio)
+    ADD FOREIGN KEY (id_negocio)
     REFERENCES public.negocio (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -253,7 +272,7 @@ ALTER TABLE IF EXISTS public.tipo_alimento
 
 
 ALTER TABLE IF EXISTS public.usuario
-    ADD CONSTRAINT usuario_id_rol_fkey FOREIGN KEY (id_rol)
+    ADD FOREIGN KEY (id_rol)
     REFERENCES public.rol (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -261,16 +280,24 @@ ALTER TABLE IF EXISTS public.usuario
 
 
 ALTER TABLE IF EXISTS public.usuario_negocio
-    ADD CONSTRAINT usuario_negocio_id_negocio_fkey FOREIGN KEY (id_negocio)
-    REFERENCES public.negocio (id) MATCH SIMPLE
+    ADD FOREIGN KEY (id_usuario)
+    REFERENCES public.usuario (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
 
 
 ALTER TABLE IF EXISTS public.usuario_negocio
-    ADD CONSTRAINT usuario_negocio_id_usuario_fkey FOREIGN KEY (id_usuario)
-    REFERENCES public.usuario (id) MATCH SIMPLE
+    ADD FOREIGN KEY (id_negocio)
+    REFERENCES public.negocio (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.pedidos
+    ADD FOREIGN KEY (id_estado)
+    REFERENCES public.pedidos_estado (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
