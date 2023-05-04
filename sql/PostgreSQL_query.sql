@@ -403,6 +403,7 @@ CREATE EXTENSION pgcrypto;
 -- VALUES
 -- 	(500000, NOW(), NULL, 1, TRUE, TRUE);
 
+
 -- UPDATE negocio SET logo = '/img/kartax/logo.png' WHERE id = 1;
 -- ---------------------------------------------------------------------
 -- ---------------------------------------------------------------------
