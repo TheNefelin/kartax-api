@@ -159,10 +159,14 @@ misRutas.post("/admin/usuarios", async (req, res) => {
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
+misRutas.get("/encuesta", async (req, res) => {
+    const resultado = await fn.encuesta_get();
+    console.log(resultado);
+    res.status(resultado.cod).json(resultado.data);
+});
+
 misRutas.post("/encuesta", async (req, res) => {
-    console.log(req.body)
-    const { experiencia, velocidad, intuitivo, recomendable, sugerencia } = req.body;
-    const resultado = await fn.encuesta_post(experiencia, velocidad, intuitivo, recomendable, sugerencia);
+    const resultado = await fn.encuesta_post(req.body);
     console.log(resultado);
     res.status(resultado.cod).json(resultado.data);
 });

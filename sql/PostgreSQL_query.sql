@@ -183,6 +183,7 @@ CREATE TABLE IF NOT EXISTS public.encuesta
 (
     id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     fecha date NOT NULL,
+    entidad character varying,
     experiencia integer NOT NULL,
     velocidad integer NOT NULL,
     intuitivo integer NOT NULL,

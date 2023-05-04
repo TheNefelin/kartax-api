@@ -36,14 +36,35 @@ export default class PGSQL {
         );
     };
     // publico --------------------------------------------------------------
-    async setEncuesta(experiencia, velocidad, intuitivo, recomendable, sugerencia) {
+    async setEncuesta(entidad, experiencia, velocidad, intuitivo, recomendable, sugerencia) {
         return await myQuery(
             `INSERT INTO encuesta
-                (fecha, experiencia, velocidad, intuitivo, recomendable, sugerencia)
+                (fecha, entidad, experiencia, velocidad, intuitivo, recomendable, sugerencia)
             VALUES
-                (NOW(), $1, $2, $3, $4, $5)
+                (NOW(), $1, $2, $3, $4, $5, $6)
             RETURNING id`,
-            [experiencia, velocidad, intuitivo, recomendable, sugerencia]
+            [entidad, experiencia, velocidad, intuitivo, recomendable, sugerencia]
+        );
+    };
+    async getEncuestaVotos() {
+        return await myQuery(
+            `SELECT 
+                SUM(experiencia) AS experiencia,
+                SUM(velocidad) AS velocidad, 
+                SUM(intuitivo) AS intuitivo,
+                SUM(recomendable) AS recomendable
+            FROM encuesta`,
+            []
+        );
+    };
+    async getEncuestaEntidades() {
+        return await myQuery(
+            `SELECT 
+                COUNT(entidad) AS cant,
+                entidad
+            FROM encuesta
+            GROUP BY
+                entidad`
         );
     };
     async getNegocio_ByIdMesa(id_mesa) {
@@ -243,6 +264,9 @@ export default class PGSQL {
 
 // funcion que ejecuta todas las querys de la clase
 async function myQuery(sql, values) {
+    console.log(sql);
+    console.log(values);
+
     const client = new Client(secretData.conexionPG());
     let resultado = [];
 
