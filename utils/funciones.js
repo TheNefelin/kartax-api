@@ -37,7 +37,7 @@ export async function encuesta_post(experiencia, velocidad, intuitivo, recomenda
     const respuesta = await pgSql.setEncuesta(experiencia, velocidad, intuitivo, recomendable, sugerencia);
 
     if (respuesta.length > 0) {
-        ok.data[0].msge = msge.post;r
+        ok.data[0].msge = msge.post;
         return ok
     } else {
         error.data[0].msge = msge.errorBD;
