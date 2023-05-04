@@ -264,8 +264,8 @@ export default class PGSQL {
 
 // funcion que ejecuta todas las querys de la clase
 async function myQuery(sql, values) {
-    console.log(sql);
-    console.log(values);
+    // console.log(sql);
+    // console.log(values);
 
     const client = new Client(secretData.conexionPG());
     let resultado = [];
