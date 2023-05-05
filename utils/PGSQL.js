@@ -53,8 +53,7 @@ export default class PGSQL {
                 SUM(velocidad) AS velocidad, 
                 SUM(intuitivo) AS intuitivo,
                 SUM(recomendable) AS recomendable
-            FROM encuesta`,
-            []
+            FROM encuesta`
         );
     };
     async getEncuestaEntidades() {

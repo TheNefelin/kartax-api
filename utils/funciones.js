@@ -115,6 +115,8 @@ export async function iniciar_sesion(usuario, clave) {
     const token = secretData.newToken(usuario, clave, 60);
     ok.data[0].token = token;
     ok.data[0].msge = msge.login;
+
+    console.log()
     return ok
 };
 
