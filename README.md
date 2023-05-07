@@ -20,18 +20,17 @@ npm install pg
 
 > Para construir la Base de Datos se debe ejecutar el archivo PostgreSQL_query.sql en PostreSQL
 
-> Para las conexiones a la BD se debe crear y configurar un archivo .env en la raiz
+> Se debe agregar en la raiz un archivo .env,en donde se definiran las variables de entornos la conexion a la base de datos, la llave de encryptacion de contraseña y el puerto de la app
 ```
 DB_USER="pgSql_usuario"
 DB_HOST="pgSql_host"
 DB_DATABASE="pgSql_database"
 DB_PASSWORD="pgSql_password"
 DB_PORT=5748
-```
 
-> Para encriptar el token se debe guardar la key en el archivo .env
-```
 JWT_KEY="jwt_key"
+
+PORT=3001
 ```
 
 ## Rúbrica
