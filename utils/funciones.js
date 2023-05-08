@@ -281,7 +281,6 @@ export async function admin_usuarios_post(usuarioAdmin, token, data) {
         return error;
     };
     estado = estado == "on" ? true : false;
-
     // valida que el correo no exista
     const valCorreo = await pgSql.validar_correo(correo);
     if (valCorreo[0].cont > 0) {
@@ -293,20 +292,16 @@ export async function admin_usuarios_post(usuarioAdmin, token, data) {
     if (valUsuario[0].cont > 0) {
         error.data[0].msge = msge.errorUsuario;
         return error;
-    }
-
-console.log(valCorreo)
-console.log(valUsuario)
-
+    };
     // registra nuevo usuario
-    // const resultado = await pgSql.registrarUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado);
-    // if (resultado.length > 0) {
-    //     ok.data[0].msge = msge.post;
-    //     return ok
-    // } else {
-    //     error.data[0].msge = msge.errorBD;
-    //     return error;
-    // };
+    const resultado = await pgSql.registrarUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado);
+    if (resultado.length > 0) {
+        ok.data[0].msge = msge.post;
+        return ok
+    } else {
+        error.data[0].msge = msge.errorBD;
+        return error;
+    };
 };
 
 // funciones que extraen informacion desde la API -------------------------
