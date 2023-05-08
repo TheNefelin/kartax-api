@@ -137,6 +137,7 @@ misRutas.post("/admin/negocios", async (req, res) => {
 
 misRutas.put("/admin/negocios", async (req, res) => {
     const { usuario, token, data } = req.body;
+    console.log(req.files)
     const resultado = await fn.admin_negocios_put(usuario, token, data);
     console.log(resultado);
     res.status(resultado.cod).json(resultado.data);
