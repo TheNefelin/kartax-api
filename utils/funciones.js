@@ -294,7 +294,7 @@ export async function admin_usuarios_post(usuarioAdmin, token, data) {
         return error;
     };
     // registra nuevo usuario
-    const resultado = await pgSql.registrarUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado);
+    const resultado = await pgSql.createUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado);
     if (resultado.length > 0) {
         ok.data[0].msge = msge.post;
         return ok
