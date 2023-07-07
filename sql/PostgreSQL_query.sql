@@ -400,7 +400,7 @@ CREATE EXTENSION pgcrypto;
 -- 	('Barra', 'Interna', TRUE, 1);
 
 -- INSERT INTO caja
--- 	(monto, fecha_ini, fecha_fin, id_usuario, is_active)
+-- 	(monto, fecha_ini, fecha_fin, id_usuario, is_active, is_pedido_active)
 -- VALUES
 -- 	(500000, NOW(), NULL, 1, TRUE, TRUE);
 
