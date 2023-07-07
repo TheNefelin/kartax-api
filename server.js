@@ -14,6 +14,6 @@ app.use(fileUpload({
     responseOnLimit: "El Tamaño del Archivo Supera el límite Permitido"
 }));
 app.use(rutas);
-app.listen(3001, () => {
-    console.log("Kartax Server Api up on 3001!!!");
+app.listen(process.env.PORT, () => {
+    console.log(`Kartax Server Api up on ${process.env.PORT}!!!`);
 });

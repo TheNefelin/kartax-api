@@ -115,6 +115,8 @@ export async function iniciar_sesion(usuario, clave) {
     const token = secretData.newToken(usuario, clave, 60);
     ok.data[0].token = token;
     ok.data[0].msge = msge.login;
+
+    console.log()
     return ok
 };
 
@@ -231,7 +233,7 @@ export async function admin_negocios_put(usuarioAdmin, token, data) {
     };
 };
 
-// carga todos los usuarios del usuario administrador
+// carga todos los usuarios por usuario administrador
 export async function admin_usuarios(usuarioAdmin, token) {
     // valida que todos los campos tengan datos
     if (!usuarioAdmin || !token) {
@@ -242,7 +244,10 @@ export async function admin_usuarios(usuarioAdmin, token) {
     const resultadoToken = secretData.validateToken(token);
     if (!resultadoToken[0].estado) {
         error.data[0].msge = resultadoToken[0].msge;
+        error.data[0].estadoToken = false;
         return error;
+    } else {
+        ok.data[0].estadoToken = true;
     };
     // devuelve los usuarios encontrados
     const arrUsuarios = await pgSql.getUsuarios_ByUsuarioAdmin(usuarioAdmin);
@@ -261,20 +266,34 @@ export async function admin_usuarios_post(usuarioAdmin, token, data) {
     const resultadoToken = secretData.validateToken(token);
     if (!resultadoToken[0].estado) {
         error.data[0].msge = resultadoToken[0].msge;
+        error.data[0].estadoToken = false;
+        ok.data[0].estadoToken = false;
         return error;
+    } else {
+        error.data[0].estadoToken = true;
+        ok.data[0].estadoToken = true;
     };
     // valida los campos
     let { nombres, apellidos, correo, usuario, clave, estado } = data;
-
-    // se validan los campos
-    nombres = nombres ? nombres : "";
-    apellidos = apellidos ? apellidos : "";
-    correo = correo ? correo : "";
-    usuario = usuario ? usuario : "";
-    clave = clave ? clave : "";
+    
+    if (!nombres || !apellidos || !correo || !usuario || !clave) {
+        error.data[0].msge = msge.errorCompletar;
+        return error;
+    };
     estado = estado == "on" ? true : false;
-
-    // crea usuario
+    // valida que el correo no exista
+    const valCorreo = await pgSql.validar_correo(correo);
+    if (valCorreo[0].cont > 0) {
+        error.data[0].msge = msge.errorCorreo;
+        return error;
+    };
+    // valida que el usuario no exista
+    const valUsuario = await pgSql.validar_usuario(usuario);
+    if (valUsuario[0].cont > 0) {
+        error.data[0].msge = msge.errorUsuario;
+        return error;
+    };
+    // registra nuevo usuario
     const resultado = await pgSql.createUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado);
     if (resultado.length > 0) {
         ok.data[0].msge = msge.post;

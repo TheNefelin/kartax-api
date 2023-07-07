@@ -53,8 +53,7 @@ export default class PGSQL {
                 SUM(velocidad) AS velocidad, 
                 SUM(intuitivo) AS intuitivo,
                 SUM(recomendable) AS recomendable
-            FROM encuesta`,
-            []
+            FROM encuesta`
         );
     };
     async getEncuestaEntidades() {
@@ -181,7 +180,7 @@ export default class PGSQL {
     };
     // obtiene usuarios atravez del usuario admin
     async createUsuario(usuarioAdmin, nombres, apellidos, correo, usuario, clave, estado) {
-        return [];
+        return await transaccion_NuevoUsuario(usuarioAdmin, { nombres, apellidos, correo, usuario, clave, estado });
     };
     async updateUsuario(usuario) {
         return [];
@@ -435,7 +434,59 @@ async function transaccion_NuevoNegocio(usuario, obj) {
     };
 
     return resultado;
-}
+};
+
+// transaccion crear nuevo usuario para el negocio existente
+async function transaccion_NuevoUsuario(usuario, obj) {
+    const pool = new Pool(secretData.conexionPG());
+    const resultado = [];
+
+    try {
+        await pool.connect();
+        await pool.query("BEGIN");
+
+        const id_negocio = await pool.query(
+            `SELECT 
+                a.id_negocio AS id
+            FROM usuario_negocio a
+                INNER JOIN usuario b ON a.id_usuario = b.id
+            WHERE
+                b.usuario = $1;`, [usuario]
+        );
+
+        const id_usuario = await pool.query(
+            `INSERT INTO usuario
+                (nombres, apellidos, correo, usuario, clave, is_active, id_rol)
+            VALUES
+                ($1, $2, $3, $4, crypt($5, gen_salt('bf')), $6, 3)
+            RETURNING id;`, 
+            [obj.nombres, obj.apellidos, obj.correo, obj.usuario, obj.clave, obj.estado] 
+        ); 
+
+        const fecha = await pool.query(
+            `INSERT INTO usuario_negocio
+                (id_usuario, id_negocio, fecha)
+            VALUES
+                ($1, $2, NOW())
+            RETURNING fecha;`,
+            [id_usuario.rows[0].id, id_negocio.rows[0].id]
+        );        
+    
+        resultado.push({fecha: fecha.rows[0].fecha});
+
+        console.log("Transaccion Exitosa!!!");
+        await pool.query("COMMIT");
+    } catch (err) {
+        await pool.query("ROLLBACK");
+        console.log("Transaccion Cancelada!!!");
+        console.log(err);
+    } finally {
+        await pool.release;
+        pool.end();
+    };
+
+    return resultado;
+};
 
 // Funcion que carga la categorias de item con sus items para el front
 async function get_ItemCateg_Items(id_tipo_alimento) {
